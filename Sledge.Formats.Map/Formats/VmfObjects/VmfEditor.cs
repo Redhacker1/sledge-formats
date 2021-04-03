@@ -25,12 +25,12 @@ namespace Sledge.Formats.Map.Formats.VmfObjects
             Properties = new Dictionary<string, string>();
             VisgroupIDs = new List<int>();
 
-            foreach (var kv in obj.Properties)
+            foreach (KeyValuePair<string, string> kv in obj.Properties)
             {
                 switch (kv.Key.ToLower())
                 {
                     case "visgroupid":
-                        if (int.TryParse(kv.Value, out var id)) VisgroupIDs.Add(id);
+                        if (int.TryParse(kv.Value, out int id)) VisgroupIDs.Add(id);
                         break;
                     case "color":
                     case "groupid":
@@ -59,14 +59,14 @@ namespace Sledge.Formats.Map.Formats.VmfObjects
 
         public SerialisedObject ToSerialisedObject()
         {
-            var so = new SerialisedObject("editor");
+            SerialisedObject so = new SerialisedObject("editor");
             so.SetColor("color", Color);
             if (GroupID > 0) so.Set("groupid", GroupID);
-            foreach (var kv in Properties)
+            foreach (KeyValuePair<string, string> kv in Properties)
             {
                 so.Set(kv.Key, kv.Value);
             }
-            foreach (var id in VisgroupIDs.Distinct())
+            foreach (int id in VisgroupIDs.Distinct())
             {
                 so.Properties.Add(new KeyValuePair<string, string>("visgroupid", Convert.ToString(id, CultureInfo.InvariantCulture)));
             }

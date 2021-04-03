@@ -23,10 +23,10 @@ namespace Sledge.Formats
         /// <inheritdoc />
         public override long Length => _length;
 
-        private readonly Stream _stream;
-        private readonly long _offset;
-        private readonly long _length;
-        private readonly bool _keepOpen;
+        readonly Stream _stream;
+        readonly long _offset;
+        readonly long _length;
+        readonly bool _keepOpen;
 
         /// <summary>
         /// Create a new substream
@@ -68,7 +68,7 @@ namespace Sledge.Formats
         {
             lock (_stream)
             {
-                var pos = _stream.Position;
+                long pos = _stream.Position;
                 _stream.Position = _offset + Position;
                 count = (int) Math.Min(count, _length - Position);
                 count = _stream.Read(buffer, offset, count);

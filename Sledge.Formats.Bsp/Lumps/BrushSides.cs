@@ -7,7 +7,7 @@ namespace Sledge.Formats.Bsp.Lumps
 {
     public class BrushSides : ILump, IList<BrushSide>
     {
-        private readonly IList<BrushSide> _brushSides;
+        readonly IList<BrushSide> _brushSides;
 
         public BrushSides()
         {
@@ -18,7 +18,7 @@ namespace Sledge.Formats.Bsp.Lumps
         {
             while (br.BaseStream.Position < blob.Offset + blob.Length)
             {
-                var bs = new BrushSide
+                BrushSide bs = new BrushSide
                 {
                     Plane = br.ReadUInt16(),
                     Texinfo = br.ReadInt16()
@@ -39,8 +39,8 @@ namespace Sledge.Formats.Bsp.Lumps
 
         public int Write(BinaryWriter bw, Version version)
         {
-            var pos = bw.BaseStream.Position;
-            foreach (var bs in _brushSides)
+            long pos = bw.BaseStream.Position;
+            foreach (BrushSide bs in _brushSides)
             {
                 bw.Write((ushort) bs.Plane);
                 bw.Write((short) bs.Texinfo);

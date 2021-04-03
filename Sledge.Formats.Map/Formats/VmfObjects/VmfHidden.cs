@@ -13,9 +13,9 @@ namespace Sledge.Formats.Map.Formats.VmfObjects
         public VmfHidden(SerialisedObject obj) : base(obj)
         {
             Objects = new List<VmfObject>();
-            foreach (var so in obj.Children)
+            foreach (SerialisedObject so in obj.Children)
             {
-                var o = VmfObject.Deserialise(so);
+                VmfObject o = VmfObject.Deserialise(so);
                 if (o != null) Objects.Add(o);
             }
         }

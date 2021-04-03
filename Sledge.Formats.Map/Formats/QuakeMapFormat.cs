@@ -77,8 +77,8 @@ namespace Sledge.Formats.Map.Formats
 
         public MapFile Read(Stream stream)
         {
-            var map = new MapFile();
-            using (var rdr = new StreamReader(stream, Encoding.ASCII, true, 1024, true))
+            MapFile map = new MapFile();
+            using (StreamReader rdr = new StreamReader(stream, Encoding.ASCII, true, 1024, true))
             {
                 ReadEntities(rdr, map);
             }
@@ -87,15 +87,15 @@ namespace Sledge.Formats.Map.Formats
 
         #region Read
 
-        private static string CleanLine(string line)
+        static string CleanLine(string line)
         {
             if (line == null) return null;
-            var ret = line;
+            string ret = line;
             if (ret.Contains("//")) ret = ret.Substring(0, ret.IndexOf("//", StringComparison.Ordinal)); // Comments
             return ret.Trim();
         }
 
-        private static void ReadEntities(StreamReader rdr, MapFile map)
+        static void ReadEntities(StreamReader rdr, MapFile map)
         {
             string line;
             while ((line = CleanLine(rdr.ReadLine())) != null)
@@ -105,9 +105,9 @@ namespace Sledge.Formats.Map.Formats
             }
         }
 
-        private static void ReadEntity(StreamReader rdr, MapFile map)
+        static void ReadEntity(StreamReader rdr, MapFile map)
         {
-            var e = new Entity();
+            Entity e = new Entity();
 
             string line;
             while ((line = CleanLine(rdr.ReadLine())) != null)
@@ -119,7 +119,7 @@ namespace Sledge.Formats.Map.Formats
                 }
                 else if (line[0] == '{')
                 {
-                    var s = ReadSolid(rdr);
+                    Solid s = ReadSolid(rdr);
                     if (s != null) e.Children.Add(s);
                 }
                 else if (line[0] == '}')
@@ -131,7 +131,7 @@ namespace Sledge.Formats.Map.Formats
             if (e.ClassName == "worldspawn")
             {
                 map.Worldspawn.SpawnFlags = e.SpawnFlags;
-                foreach (var p in e.Properties) map.Worldspawn.Properties[p.Key] = p.Value;
+                foreach (KeyValuePair<string, string> p in e.Properties) map.Worldspawn.Properties[p.Key] = p.Value;
                 map.Worldspawn.Children.AddRange(e.Children);
             }
             else
@@ -140,13 +140,13 @@ namespace Sledge.Formats.Map.Formats
             }
         }
 
-        private static void ReadProperty(Entity ent, string line)
+        static void ReadProperty(Entity ent, string line)
         {
             // Quake id1 map sources use tabs between keys and values
-            var split = line.Split(' ', '\t');
-            var key = split[0].Trim('"');
+            string[] split = line.Split(' ', '\t');
+            string key = split[0].Trim('"');
 
-            var val = string.Join(" ", split.Skip(1)).Trim('"');
+            string val = string.Join(" ", split.Skip(1)).Trim('"');
 
             if (key == "classname")
             {
@@ -162,9 +162,9 @@ namespace Sledge.Formats.Map.Formats
             }
         }
 
-        private static Solid ReadSolid(StreamReader rdr)
+        static Solid ReadSolid(StreamReader rdr)
         {
-            var s = new Solid();
+            Solid s = new Solid();
 
             string line;
             while ((line = CleanLine(rdr.ReadLine())) != null)
@@ -192,11 +192,11 @@ namespace Sledge.Formats.Map.Formats
             return null;
         }
 
-        private static Face ReadFace(string line)
+        static Face ReadFace(string line)
         {
             const NumberStyles ns = NumberStyles.Float;
 
-            var parts = line.Split(' ').ToList();
+            List<string> parts = line.Split(' ').ToList();
 
             Util.Assert(parts[0] == "(");
             Util.Assert(parts[4] == ")");
@@ -205,17 +205,17 @@ namespace Sledge.Formats.Map.Formats
             Util.Assert(parts[10] == "(");
             Util.Assert(parts[14] == ")");
 
-            var a = NumericsExtensions.Parse(parts[1], parts[2], parts[3], ns, CultureInfo.InvariantCulture);
-            var b = NumericsExtensions.Parse(parts[6], parts[7], parts[8], ns, CultureInfo.InvariantCulture);
-            var c = NumericsExtensions.Parse(parts[11], parts[12], parts[13], ns, CultureInfo.InvariantCulture);
+            Vector3 a = NumericsExtensions.Parse(parts[1], parts[2], parts[3], ns, CultureInfo.InvariantCulture);
+            Vector3 b = NumericsExtensions.Parse(parts[6], parts[7], parts[8], ns, CultureInfo.InvariantCulture);
+            Vector3 c = NumericsExtensions.Parse(parts[11], parts[12], parts[13], ns, CultureInfo.InvariantCulture);
 
-            var ab = b - a;
-            var ac = c - a;
+            Vector3 ab = b - a;
+            Vector3 ac = c - a;
 
-            var normal = ac.Cross(ab).Normalise();
-            var d = normal.Dot(a);
+            Vector3 normal = ac.Cross(ab).Normalise();
+            float d = normal.Dot(a);
 
-            var face = new Face()
+            Face face = new Face()
             {
                 Plane = new Plane(normal, d),
                 TextureName = parts[15]
@@ -224,15 +224,15 @@ namespace Sledge.Formats.Map.Formats
             // idTech2, idTech3
             if (parts.Count == 21 || parts.Count == 24)
             {
-                var direction = ClosestAxisToNormal(face.Plane);
+                Vector3 direction = ClosestAxisToNormal(face.Plane);
                 face.UAxis = direction == Vector3.UnitX ? Vector3.UnitY : Vector3.UnitX;
                 face.VAxis = direction == Vector3.UnitZ ? -Vector3.UnitY : -Vector3.UnitZ;
 
-                var xshift = float.Parse(parts[16], ns, CultureInfo.InvariantCulture);
-                var yshift = float.Parse(parts[17], ns, CultureInfo.InvariantCulture);
-                var rotate = float.Parse(parts[18], ns, CultureInfo.InvariantCulture);
-                var xscale = float.Parse(parts[19], ns, CultureInfo.InvariantCulture);
-                var yscale = float.Parse(parts[20], ns, CultureInfo.InvariantCulture);
+                float xshift = float.Parse(parts[16], ns, CultureInfo.InvariantCulture);
+                float yshift = float.Parse(parts[17], ns, CultureInfo.InvariantCulture);
+                float rotate = float.Parse(parts[18], ns, CultureInfo.InvariantCulture);
+                float xscale = float.Parse(parts[19], ns, CultureInfo.InvariantCulture);
+                float yscale = float.Parse(parts[20], ns, CultureInfo.InvariantCulture);
 
                 face.Rotation = rotate;
                 face.XScale = xscale;
@@ -272,9 +272,9 @@ namespace Sledge.Formats.Map.Formats
             return face;
         }
 
-        private static Vector3 ClosestAxisToNormal(Plane plane)
+        static Vector3 ClosestAxisToNormal(Plane plane)
         {
-            var norm = plane.Normal.Absolute();
+            Vector3 norm = plane.Normal.Absolute();
             if (norm.Z >= norm.X && norm.Z >= norm.Y) return Vector3.UnitZ;
             if (norm.X >= norm.Y) return Vector3.UnitX;
             return Vector3.UnitY;
@@ -284,7 +284,7 @@ namespace Sledge.Formats.Map.Formats
 
         public void Write(Stream stream, MapFile map, string styleHint)
         {
-            using (var sw = new StreamWriter(stream, Encoding.ASCII, 1024, true))
+            using (StreamWriter sw = new StreamWriter(stream, Encoding.ASCII, 1024, true))
             {
                 WriteWorld(sw, map.Worldspawn, styleHint);
             }
@@ -292,15 +292,14 @@ namespace Sledge.Formats.Map.Formats
 
         #region Writing
 
-
-        private static string FormatVector3(Vector3 c)
+        static string FormatVector3(Vector3 c)
         {
             return $"{c.X.ToString("0.000", CultureInfo.InvariantCulture)} {c.Y.ToString("0.000", CultureInfo.InvariantCulture)} {c.Z.ToString("0.000", CultureInfo.InvariantCulture)}";
         }
 
-        private static void CollectNonEntitySolids(List<Solid> solids, MapObject parent)
+        static void CollectNonEntitySolids(List<Solid> solids, MapObject parent)
         {
-            foreach (var obj in parent.Children)
+            foreach (MapObject obj in parent.Children)
             {
                 switch (obj)
                 {
@@ -314,9 +313,9 @@ namespace Sledge.Formats.Map.Formats
             }
         }
 
-        private static void CollectEntities(List<Entity> entities, MapObject parent)
+        static void CollectEntities(List<Entity> entities, MapObject parent)
         {
-            foreach (var obj in parent.Children)
+            foreach (MapObject obj in parent.Children)
             {
                 switch (obj)
                 {
@@ -330,11 +329,11 @@ namespace Sledge.Formats.Map.Formats
             }
         }
 
-        private static void WriteFace(StreamWriter sw, Face face, string styleHint)
+        static void WriteFace(StreamWriter sw, Face face, string styleHint)
         {
             // ( -128 64 64 ) ( -64 64 64 ) ( -64 0 64 ) AAATRIGGER [ 1 0 0 0 ] [ 0 -1 0 0 ] 0 1 1
-            var strings = face.Vertices.Take(3).Select(x => "( " + FormatVector3(x) + " )").ToList();
-            strings.Add(String.IsNullOrWhiteSpace(face.TextureName) ? "NULL" : face.TextureName);
+            List<string> strings = face.Vertices.Take(3).Select(x => "( " + FormatVector3(x) + " )").ToList();
+            strings.Add(string.IsNullOrWhiteSpace(face.TextureName) ? "NULL" : face.TextureName);
             switch (styleHint)
             {
                 case "idTech2":
@@ -367,32 +366,32 @@ namespace Sledge.Formats.Map.Formats
                     break;
             }
 
-            sw.WriteLine(String.Join(" ", strings));
+            sw.WriteLine(string.Join(" ", strings));
         }
 
-        private static void WriteSolid(StreamWriter sw, Solid solid, string styleHint)
+        static void WriteSolid(StreamWriter sw, Solid solid, string styleHint)
         {
             sw.WriteLine("{");
-            foreach (var face in solid.Faces)
+            foreach (Face face in solid.Faces)
             {
                 WriteFace(sw, face, styleHint);
             }
             sw.WriteLine("}");
         }
 
-        private static void WriteProperty(StreamWriter sw, string key, string value)
+        static void WriteProperty(StreamWriter sw, string key, string value)
         {
             sw.WriteLine('"' + key + "\" \"" + value + '"');
         }
 
-        private static void WriteEntity(StreamWriter sw, Entity ent, string styleHint)
+        static void WriteEntity(StreamWriter sw, Entity ent, string styleHint)
         {
-            var solids = new List<Solid>();
+            List<Solid> solids = new List<Solid>();
             CollectNonEntitySolids(solids, ent);
             WriteEntityWithSolids(sw, ent, solids, styleHint);
         }
 
-        private static void WriteEntityWithSolids(StreamWriter sw, Entity e, IEnumerable<Solid> solids, string styleHint)
+        static void WriteEntityWithSolids(StreamWriter sw, Entity e, IEnumerable<Solid> solids, string styleHint)
         {
             sw.WriteLine("{");
 
@@ -403,12 +402,12 @@ namespace Sledge.Formats.Map.Formats
                 WriteProperty(sw, "spawnflags", e.SpawnFlags.ToString(CultureInfo.InvariantCulture));
             }
 
-            foreach (var prop in e.Properties)
+            foreach (KeyValuePair<string, string> prop in e.Properties)
             {
                 WriteProperty(sw, prop.Key, prop.Value);
             }
 
-            foreach (var s in solids)
+            foreach (Solid s in solids)
             {
                 WriteSolid(sw, s, styleHint);
             }
@@ -416,17 +415,17 @@ namespace Sledge.Formats.Map.Formats
             sw.WriteLine("}");
         }
 
-        private void WriteWorld(StreamWriter sw, Worldspawn world, string styleHint)
+        void WriteWorld(StreamWriter sw, Worldspawn world, string styleHint)
         {
-            var solids = new List<Solid>();
-            var entities = new List<Entity>();
+            List<Solid> solids = new List<Solid>();
+            List<Entity> entities = new List<Entity>();
 
             CollectNonEntitySolids(solids, world);
             CollectEntities(entities, world);
 
             WriteEntityWithSolids(sw, world, solids, styleHint);
 
-            foreach (var entity in entities)
+            foreach (Entity entity in entities)
             {
                 WriteEntity(sw, entity, styleHint);
             }

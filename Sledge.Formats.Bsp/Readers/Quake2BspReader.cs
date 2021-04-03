@@ -75,7 +75,7 @@ namespace Sledge.Formats.Bsp.Readers
             }
         }
 
-        private enum Lump : int
+        enum Lump : int
         {
             Entities = 0,
             Planes = 1,

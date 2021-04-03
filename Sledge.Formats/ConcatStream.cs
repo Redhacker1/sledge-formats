@@ -7,10 +7,10 @@ namespace Sledge.Formats
 {
     public class ConcatStream : Stream
     {
-        private readonly bool _keepOpen;
-        private readonly List<Stream> _streams;
-        private int _current;
-        private long _currentPosition;
+        readonly bool _keepOpen;
+        readonly List<Stream> _streams;
+        int _current;
+        long _currentPosition;
 
         public override bool CanRead { get; }
         public override bool CanSeek { get; }
@@ -22,7 +22,7 @@ namespace Sledge.Formats
             get
             {
                 long p = 0;
-                for (var i = 0; i < _current; i++) p += _streams[i].Length;
+                for (int i = 0; i < _current; i++) p += _streams[i].Length;
                 p += _currentPosition;
                 return p;
             }
@@ -45,14 +45,14 @@ namespace Sledge.Formats
 
         public override int Read(byte[] buffer, int offset, int count)
         {
-            var read = 0;
+            int read = 0;
 
             while (count > 0)
             {
                 if (_current == _streams.Count - 1) break;
 
-                var max = (int)Math.Min(count, _streams[_current].Length - _currentPosition);
-                var r = _streams[_current].Read(buffer, offset + read, max);
+                int max = (int)Math.Min(count, _streams[_current].Length - _currentPosition);
+                int r = _streams[_current].Read(buffer, offset + read, max);
                 count -= r;
                 read += r;
                 _currentPosition += r;
@@ -74,7 +74,7 @@ namespace Sledge.Formats
             if (origin == SeekOrigin.Current) offset += Position;
             if (origin == SeekOrigin.End) offset = Length - offset;
 
-            foreach (var s in _streams)
+            foreach (Stream s in _streams)
             {
                 if (s.Length > offset)
                 {
@@ -82,11 +82,9 @@ namespace Sledge.Formats
                     s.Seek(offset, SeekOrigin.Begin);
                     break;
                 }
-                else
-                {
-                    offset -= s.Length;
-                    _current++;
-                }
+
+                offset -= s.Length;
+                _current++;
             }
 
             return Position;
@@ -96,7 +94,7 @@ namespace Sledge.Formats
         {
             if (disposing && !_keepOpen)
             {
-                foreach (var s in _streams)
+                foreach (Stream s in _streams)
                 {
                     s.Dispose();
                 }

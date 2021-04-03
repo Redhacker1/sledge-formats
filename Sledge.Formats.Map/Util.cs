@@ -15,10 +15,10 @@ namespace Sledge.Formats.Map
 
         public static bool ParseFloatArray(string input, char[] splitChars, int expected, out float[] array)
         {
-            var spl = input.Split(splitChars, StringSplitOptions.RemoveEmptyEntries);
+            string[] spl = input.Split(splitChars, StringSplitOptions.RemoveEmptyEntries);
             if (spl.Length == expected)
             {
-                var parsed = spl.Select(x => float.TryParse(x, NumberStyles.Float, CultureInfo.InvariantCulture, out var o) ? (float?)o : null).ToList();
+                List<float?> parsed = spl.Select(x => float.TryParse(x, NumberStyles.Float, CultureInfo.InvariantCulture, out float o) ? (float?)o : null).ToList();
                 if (parsed.All(x => x.HasValue))
                 {
                     // ReSharper disable once PossibleInvalidOperationException

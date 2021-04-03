@@ -17,7 +17,7 @@ namespace Sledge.Formats.Valve
         /// </summary>
         public string Game
         {
-            get => TryGetValue("game", out var s) ? s : null;
+            get => TryGetValue("game", out string s) ? s : null;
             set => this["game"] = value;
         }
 
@@ -26,7 +26,7 @@ namespace Sledge.Formats.Valve
         /// </summary>
         public string Icon
         {
-            get => TryGetValue("icon", out var s) ? s : null;
+            get => TryGetValue("icon", out string s) ? s : null;
             set => this["icon"] = value;
         }
 
@@ -35,7 +35,7 @@ namespace Sledge.Formats.Valve
         /// </summary>
         public string Developer
         {
-            get => TryGetValue("developer", out var s) ? s : null;
+            get => TryGetValue("developer", out string s) ? s : null;
             set => this["developer"] = value;
         }
 
@@ -44,7 +44,7 @@ namespace Sledge.Formats.Valve
         /// </summary>
         public string DeveloperUrl
         {
-            get => TryGetValue("developer_url", out var s) ? s : null;
+            get => TryGetValue("developer_url", out string s) ? s : null;
             set => this["developer_url"] = value;
         }
 
@@ -53,7 +53,7 @@ namespace Sledge.Formats.Valve
         /// </summary>
         public string Manual
         {
-            get => TryGetValue("manual", out var s) ? s : null;
+            get => TryGetValue("manual", out string s) ? s : null;
             set => this["manual"] = value;
         }
 
@@ -62,7 +62,7 @@ namespace Sledge.Formats.Valve
         /// </summary>
         public string GameDll
         {
-            get => TryGetValue("gamedll", out var s) ? s : null;
+            get => TryGetValue("gamedll", out string s) ? s : null;
             set => this["gamedll"] = value;
         }
 
@@ -71,7 +71,7 @@ namespace Sledge.Formats.Valve
         /// </summary>
         public string GameDllLinux
         {
-            get => TryGetValue("gamedll_linux", out var s) ? s : null;
+            get => TryGetValue("gamedll_linux", out string s) ? s : null;
             set => this["gamedll_linux"] = value;
         }
 
@@ -80,7 +80,7 @@ namespace Sledge.Formats.Valve
         /// </summary>
         public string GameDllOsx
         {
-            get => TryGetValue("gamedll_osx", out var s) ? s : null;
+            get => TryGetValue("gamedll_osx", out string s) ? s : null;
             set => this["gamedll_osx"] = value;
         }
         
@@ -89,7 +89,7 @@ namespace Sledge.Formats.Valve
         /// </summary>
         public bool? Secure
         {
-            get => TryGetValue("secure", out var s) && Int32.TryParse(s, out var b) ? b == 1 : (bool?)null;
+            get => TryGetValue("secure", out string s) && int.TryParse(s, out int b) ? b == 1 : (bool?)null;
             set => this["secure"] = !value.HasValue ? null : value.Value ? "1" : "0";
         }
 
@@ -98,7 +98,7 @@ namespace Sledge.Formats.Valve
         /// </summary>
         public bool? ServerOnly
         {
-            get => TryGetValue("svonly", out var s) && Int32.TryParse(s, out var b) ? b == 1 : (bool?)null;
+            get => TryGetValue("svonly", out string s) && int.TryParse(s, out int b) ? b == 1 : (bool?)null;
             set => this["svonly"] = !value.HasValue ? null : value.Value ? "1" : "0";
         }
 
@@ -107,7 +107,7 @@ namespace Sledge.Formats.Valve
         /// </summary>
         public bool? ClientDllRequired
         {
-            get => TryGetValue("cldll", out var s) && Int32.TryParse(s, out var b) ? b == 1 : (bool?)null;
+            get => TryGetValue("cldll", out string s) && int.TryParse(s, out int b) ? b == 1 : (bool?)null;
             set => this["cldll"] = !value.HasValue ? null : value.Value ? "1" : "0";
         }
 
@@ -116,7 +116,7 @@ namespace Sledge.Formats.Valve
         /// </summary>
         public string Type
         {
-            get => TryGetValue("type", out var s) ? s : null;
+            get => TryGetValue("type", out string s) ? s : null;
             set => this["type"] = value;
         }
 
@@ -125,7 +125,7 @@ namespace Sledge.Formats.Valve
         /// </summary>
         public string StartingMap
         {
-            get => TryGetValue("startmap", out var s) ? s : null;
+            get => TryGetValue("startmap", out string s) ? s : null;
             set => this["startmap"] = value;
         }
 
@@ -134,7 +134,7 @@ namespace Sledge.Formats.Valve
         /// </summary>
         public string TrainingMap
         {
-            get => TryGetValue("trainmap", out var s) ? s : null;
+            get => TryGetValue("trainmap", out string s) ? s : null;
             set => this["trainmap"] = value;
         }
 
@@ -143,7 +143,7 @@ namespace Sledge.Formats.Valve
         /// </summary>
         public string MultiplayerEntity
         {
-            get => TryGetValue("mpentity", out var s) ? s : null;
+            get => TryGetValue("mpentity", out string s) ? s : null;
             set => this["mpentity"] = value;
         }
 
@@ -152,7 +152,7 @@ namespace Sledge.Formats.Valve
         /// </summary>
         public string MultiplayerFilter
         {
-            get => TryGetValue("mpfilter", out var s) ? s : null;
+            get => TryGetValue("mpfilter", out string s) ? s : null;
             set => this["mpfilter"] = value;
         }
 
@@ -161,7 +161,7 @@ namespace Sledge.Formats.Valve
         /// </summary>
         public string FallbackDirectory
         {
-            get => TryGetValue("fallback_dir", out var s) ? s : null;
+            get => TryGetValue("fallback_dir", out string s) ? s : null;
             set => this["fallback_dir"] = value;
         }
 
@@ -170,7 +170,7 @@ namespace Sledge.Formats.Valve
         /// </summary>
         public bool? FallbackMaps
         {
-            get => TryGetValue("fallback_maps", out var s) && Int32.TryParse(s, out var b) ? b == 1 : (bool?)null;
+            get => TryGetValue("fallback_maps", out string s) && int.TryParse(s, out int b) ? b == 1 : (bool?)null;
             set => this["fallback_maps"] = !value.HasValue ? null : value.Value ? "1" : "0";
         }
 
@@ -179,7 +179,7 @@ namespace Sledge.Formats.Valve
         /// </summary>
         public bool? NoModels
         {
-            get => TryGetValue("nomodels", out var s) && Int32.TryParse(s, out var b) ? b == 1 : (bool?)null;
+            get => TryGetValue("nomodels", out string s) && int.TryParse(s, out int b) ? b == 1 : (bool?)null;
             set => this["nomodels"] = !value.HasValue ? null : value.Value ? "1" : "0";
         }
 
@@ -188,7 +188,7 @@ namespace Sledge.Formats.Valve
         /// </summary>
         public bool? NoHighDefinitionModels
         {
-            get => TryGetValue("nohimodels", out var s) && Int32.TryParse(s, out var b) ? b == 1 : (bool?)null;
+            get => TryGetValue("nohimodels", out string s) && int.TryParse(s, out int b) ? b == 1 : (bool?)null;
             set => this["nohimodels"] = !value.HasValue ? null : value.Value ? "1" : "0";
         }
 
@@ -197,7 +197,7 @@ namespace Sledge.Formats.Valve
         /// </summary>
         public bool? DetailedTextures
         {
-            get => TryGetValue("detailed_textures", out var s) && Int32.TryParse(s, out var b) ? b == 1 : (bool?)null;
+            get => TryGetValue("detailed_textures", out string s) && int.TryParse(s, out int b) ? b == 1 : (bool?)null;
             set => this["detailed_textures"] = !value.HasValue ? null : value.Value ? "1" : "0";
         }
 
@@ -210,24 +210,24 @@ namespace Sledge.Formats.Valve
 
         public Liblist(Stream stream)
         {
-            using (var sr = new StreamReader(stream, Encoding.ASCII, false, 1024, true))
+            using (StreamReader sr = new StreamReader(stream, Encoding.ASCII, false, 1024, true))
             {
                 string line;
                 while ((line = sr.ReadLine()) != null)
                 {
-                    var c = line.IndexOf("//", StringComparison.Ordinal);
+                    int c = line.IndexOf("//", StringComparison.Ordinal);
                     if (c >= 0) line = line.Substring(0, c);
                     line = line.Trim();
 
-                    if (String.IsNullOrWhiteSpace(line)) continue;
+                    if (string.IsNullOrWhiteSpace(line)) continue;
 
                     c = line.IndexOf(' ');
                     if (c < 0) continue;
 
-                    var key = line.Substring(0, c).ToLower();
-                    if (String.IsNullOrWhiteSpace(key)) continue;
+                    string key = line.Substring(0, c).ToLower();
+                    if (string.IsNullOrWhiteSpace(key)) continue;
 
-                    var value = line.Substring(c + 1);
+                    string value = line.Substring(c + 1);
                     if (value[0] != '"' || value[value.Length - 1] != '"') continue;
 
                     value = value.Substring(1, value.Length - 2).Trim();
@@ -238,9 +238,9 @@ namespace Sledge.Formats.Valve
 
         public void Write(Stream stream)
         {
-            using (var sr = new StreamWriter(stream, Encoding.ASCII, 1024, true))
+            using (StreamWriter sr = new StreamWriter(stream, Encoding.ASCII, 1024, true))
             {
-                foreach (var kv in this)
+                foreach (KeyValuePair<string, string> kv in this)
                 {
                     sr.WriteLine($"{kv.Key} \"{kv.Value}\"");
                 }
@@ -249,8 +249,8 @@ namespace Sledge.Formats.Valve
 
         public override string ToString()
         {
-            var sb = new StringBuilder();
-            foreach (var kv in this)
+            StringBuilder sb = new StringBuilder();
+            foreach (KeyValuePair<string, string> kv in this)
             {
                 sb.AppendLine($"{kv.Key} \"{kv.Value}\"");
             }

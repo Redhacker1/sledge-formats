@@ -7,7 +7,7 @@ namespace Sledge.Formats.Bsp.Lumps
 {
     public class Leaves : ILump, IList<Leaf>
     {
-        private readonly IList<Leaf> _leaves;
+        readonly IList<Leaf> _leaves;
 
         public Leaves()
         {
@@ -18,7 +18,7 @@ namespace Sledge.Formats.Bsp.Lumps
         {
             while (br.BaseStream.Position < blob.Offset + blob.Length)
             {
-                var leaf = new Leaf
+                Leaf leaf = new Leaf
                 {
                     Contents = (Contents)br.ReadInt32(),
                     AmbientLevels = new byte[Leaf.MaxNumAmbientLevels]
@@ -70,8 +70,8 @@ namespace Sledge.Formats.Bsp.Lumps
 
         public int Write(BinaryWriter bw, Version version)
         {
-            var pos = bw.BaseStream.Position;
-            foreach (var leaf in _leaves)
+            long pos = bw.BaseStream.Position;
+            foreach (Leaf leaf in _leaves)
             {
                 bw.Write((int) leaf.Contents);
                 switch (version)

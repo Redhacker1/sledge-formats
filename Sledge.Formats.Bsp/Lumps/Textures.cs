@@ -9,7 +9,7 @@ namespace Sledge.Formats.Bsp.Lumps
 {
     public class Textures : ILump, IList<MipTexture>
     {
-        private readonly IList<MipTexture> _textures;
+        readonly IList<MipTexture> _textures;
 
         public Textures()
         {
@@ -18,13 +18,13 @@ namespace Sledge.Formats.Bsp.Lumps
 
         public void Read(BinaryReader br, Blob blob, Version version)
         {
-            var numTextures = br.ReadUInt32();
-            var offsets = new int[numTextures];
-            for (var i = 0; i < numTextures; i++) offsets[i] = br.ReadInt32();
-            foreach (var offset in offsets)
+            uint numTextures = br.ReadUInt32();
+            int[] offsets = new int[numTextures];
+            for (int i = 0; i < numTextures; i++) offsets[i] = br.ReadInt32();
+            foreach (int offset in offsets)
             {
                 br.BaseStream.Seek(blob.Offset + offset, SeekOrigin.Begin);
-                var tex = MipTexture.Read(br, version == Version.Goldsource);
+                MipTexture tex = MipTexture.Read(br, version == Version.Goldsource);
                 _textures.Add(tex);
             }
         }
@@ -41,22 +41,22 @@ namespace Sledge.Formats.Bsp.Lumps
 
         public int Write(BinaryWriter bw, Version version)
         {
-            var pos = bw.BaseStream.Position;
+            long pos = bw.BaseStream.Position;
 
             bw.Write((uint) _textures.Count);
             bw.Seek(sizeof(int) * _textures.Count, SeekOrigin.Current);
 
-            var offsets = new int[_textures.Count];
-            for (var i = 0; i < _textures.Count; i++)
+            int[] offsets = new int[_textures.Count];
+            for (int i = 0; i < _textures.Count; i++)
             {
-                var tex = _textures[i];
+                MipTexture tex = _textures[i];
                 offsets[i] = (int) (bw.BaseStream.Position - pos);
                 MipTexture.Write(bw, version == Version.Goldsource, tex);
             }
 
-            var pos2 = bw.BaseStream.Position;
+            long pos2 = bw.BaseStream.Position;
             bw.BaseStream.Seek(pos + sizeof(uint), SeekOrigin.Begin);
-            foreach (var offset in offsets) bw.Write((int) offset);
+            foreach (int offset in offsets) bw.Write((int) offset);
             bw.BaseStream.Seek(pos2, SeekOrigin.Begin);
 
             return (int)(bw.BaseStream.Position - pos);

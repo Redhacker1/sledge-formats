@@ -7,7 +7,7 @@ namespace Sledge.Formats.Bsp.Lumps
 {
     public class Faces : ILump, IList<Face>
     {
-        private readonly IList<Face> _faces;
+        readonly IList<Face> _faces;
 
         public Faces()
         {
@@ -18,7 +18,7 @@ namespace Sledge.Formats.Bsp.Lumps
         {
             while (br.BaseStream.Position < blob.Offset + blob.Length)
             {
-                var face = new Face
+                Face face = new Face
                 {
                     Plane = br.ReadUInt16(),
                     Side = br.ReadUInt16(),
@@ -44,8 +44,8 @@ namespace Sledge.Formats.Bsp.Lumps
 
         public int Write(BinaryWriter bw, Version version)
         {
-            var pos = bw.BaseStream.Position;
-            foreach (var face in _faces)
+            long pos = bw.BaseStream.Position;
+            foreach (Face face in _faces)
             {
                 bw.Write((ushort) face.Plane);
                 bw.Write((ushort) face.Side);

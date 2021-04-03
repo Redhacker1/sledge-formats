@@ -17,17 +17,17 @@ namespace Sledge.Formats.Id
 
         public static MipTexture Read(BinaryReader br, bool readPalette)
         {
-            var position = br.BaseStream.Position;
+            long position = br.BaseStream.Position;
 
-            var texture = new MipTexture();
+            MipTexture texture = new MipTexture();
 
-            var name = br.ReadChars(NameLength);
-            var len = Array.IndexOf(name, '\0');
+            char[] name = br.ReadChars(NameLength);
+            int len = Array.IndexOf(name, '\0');
             texture.Name = new string(name, 0, len < 0 ? name.Length : len);
 
             texture.Width = br.ReadUInt32();
             texture.Height = br.ReadUInt32();
-            var offsets = new[] { br.ReadUInt32(), br.ReadUInt32(), br.ReadUInt32(), br.ReadUInt32() };
+            uint[] offsets = new[] { br.ReadUInt32(), br.ReadUInt32(), br.ReadUInt32(), br.ReadUInt32() };
 
             if (offsets[0] == 0)
             {
@@ -41,7 +41,7 @@ namespace Sledge.Formats.Id
             texture.MipData = new byte[4][];
 
             int w = (int)texture.Width, h = (int)texture.Height;
-            for (var i = 0; i < 4; i++)
+            for (int i = 0; i < 4; i++)
             {
                 br.BaseStream.Seek(position + offsets[i], SeekOrigin.Begin);
                 texture.MipData[i] = br.ReadBytes(w * h);
@@ -51,7 +51,7 @@ namespace Sledge.Formats.Id
 
             if (readPalette)
             {
-                var paletteSize = br.ReadUInt16();
+                ushort paletteSize = br.ReadUInt16();
                 texture.Palette = br.ReadBytes(paletteSize * 3);
             }
             else
@@ -80,13 +80,13 @@ namespace Sledge.Formats.Id
 
             uint currentOffset = NameLength + sizeof(uint) * 2 + sizeof(uint) * 4;
 
-            for (var i = 0; i < 4; i++)
+            for (int i = 0; i < 4; i++)
             {
                 bw.Write((uint) currentOffset);
                 currentOffset += (uint) texture.MipData[i].Length;
             }
 
-            for (var i = 0; i < 4; i++)
+            for (int i = 0; i < 4; i++)
             {
                 bw.Write((byte[]) texture.MipData[i]);
             }

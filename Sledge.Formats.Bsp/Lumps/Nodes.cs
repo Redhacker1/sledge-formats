@@ -7,7 +7,7 @@ namespace Sledge.Formats.Bsp.Lumps
 {
     public class Nodes : ILump, IList<Node>
     {
-        private readonly IList<Node> _nodes;
+        readonly IList<Node> _nodes;
 
         public Nodes()
         {
@@ -18,7 +18,7 @@ namespace Sledge.Formats.Bsp.Lumps
         {
             while (br.BaseStream.Position < blob.Offset + blob.Length)
             {
-                var node = new Node
+                Node node = new Node
                 {
                     Plane = br.ReadUInt32(),
                     Children = new int[2],
@@ -29,14 +29,14 @@ namespace Sledge.Formats.Bsp.Lumps
                 {
                     case Version.Quake1:
                     case Version.Goldsource:
-                        for (var i = 0; i < 2; i++) node.Children[i] = br.ReadInt16();
+                        for (int i = 0; i < 2; i++) node.Children[i] = br.ReadInt16();
                         break;
                     case Version.Quake2:
-                        for (var i = 0; i < 2; i++) node.Children[i] = br.ReadInt32();
+                        for (int i = 0; i < 2; i++) node.Children[i] = br.ReadInt32();
                         break;
                 }
-                for (var i = 0; i < 3; i++) node.Mins[i] = br.ReadInt16();
-                for (var i = 0; i < 3; i++) node.Maxs[i] = br.ReadInt16();
+                for (int i = 0; i < 3; i++) node.Mins[i] = br.ReadInt16();
+                for (int i = 0; i < 3; i++) node.Maxs[i] = br.ReadInt16();
                 node.FirstFace = br.ReadUInt16();
                 node.NumFaces = br.ReadUInt16();
                 _nodes.Add(node);
@@ -55,8 +55,8 @@ namespace Sledge.Formats.Bsp.Lumps
 
         public int Write(BinaryWriter bw, Version version)
         {
-            var pos = bw.BaseStream.Position;
-            foreach (var node in _nodes)
+            long pos = bw.BaseStream.Position;
+            foreach (Node node in _nodes)
             {
                 bw.Write((uint) node.Plane);
 

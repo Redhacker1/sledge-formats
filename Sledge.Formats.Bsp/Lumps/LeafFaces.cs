@@ -6,7 +6,7 @@ namespace Sledge.Formats.Bsp.Lumps
 {
     public class LeafFaces : ILump, IList<ushort>
     {
-        private readonly IList<ushort> _leafFaces;
+        readonly IList<ushort> _leafFaces;
 
         public LeafFaces()
         {
@@ -15,8 +15,8 @@ namespace Sledge.Formats.Bsp.Lumps
 
         public void Read(BinaryReader br, Blob blob, Version version)
         {
-            var num = blob.Length / sizeof(ushort);
-            for (var i = 0; i < num; i++)
+            int num = blob.Length / sizeof(ushort);
+            for (int i = 0; i < num; i++)
             {
                 _leafFaces.Add(br.ReadUInt16());
             }
@@ -34,7 +34,7 @@ namespace Sledge.Formats.Bsp.Lumps
 
         public int Write(BinaryWriter bw, Version version)
         {
-            foreach (var se in _leafFaces)
+            foreach (ushort se in _leafFaces)
             {
                 bw.Write((ushort) se);
             }

@@ -13,7 +13,7 @@ namespace Sledge.Formats.Texture.Wad
         public Header Header { get; set; }
         public List<Entry> Entries { get; set; }
 
-        private Dictionary<Entry, ILump> _lumps;
+        Dictionary<Entry, ILump> _lumps;
         public IEnumerable<ILump> Lumps => _lumps.Values;
 
         /// <summary>
@@ -34,7 +34,7 @@ namespace Sledge.Formats.Texture.Wad
         public WadFile(Stream stream, bool loadLumps = true)
         {
             Entries = new List<Entry>();
-            using (var br = new BinaryReader(stream, Encoding.ASCII, true))
+            using (BinaryReader br = new BinaryReader(stream, Encoding.ASCII, true))
             {
                 Header = new Header(br);
 
@@ -44,9 +44,9 @@ namespace Sledge.Formats.Texture.Wad
                 }
 
                 br.BaseStream.Seek(Header.DirectoryOffset, SeekOrigin.Begin);
-                for (var i = 0; i < Header.NumEntries; i++)
+                for (int i = 0; i < Header.NumEntries; i++)
                 {
-                    var entry = new Entry(br);
+                    Entry entry = new Entry(br);
                     Entries.Add(entry);
                 }
             }
@@ -63,19 +63,19 @@ namespace Sledge.Formats.Texture.Wad
         /// <param name="stream">The stream to write to</param>
         public int Write(Stream stream)
         {
-            using (var bw = new BinaryWriter(stream, Encoding.ASCII, true))
+            using (BinaryWriter bw = new BinaryWriter(stream, Encoding.ASCII, true))
             {
-                var entries = new List<Entry>();
-                var startPos = bw.BaseStream.Position;
+                List<Entry> entries = new List<Entry>();
+                long startPos = bw.BaseStream.Position;
 
                 Header.Write(bw); // We'll come back to this later
 
                 // Write the lumps
-                foreach (var kv in _lumps)
+                foreach (KeyValuePair<Entry, ILump> kv in _lumps)
                 {
-                    var pos = bw.BaseStream.Position - startPos;
-                    var size = kv.Value.Write(bw);
-                    var e = kv.Key;
+                    long pos = bw.BaseStream.Position - startPos;
+                    int size = kv.Value.Write(bw);
+                    Entry e = kv.Key;
                     e.Offset = (int) pos;
                     e.UncompressedSize = e.CompressedSize = size;
                     entries.Add(e);
@@ -84,10 +84,10 @@ namespace Sledge.Formats.Texture.Wad
                 // Write the entries
                 Header.NumEntries = entries.Count;
                 Header.DirectoryOffset = (int) (bw.BaseStream.Position - startPos);
-                foreach (var e in entries) e.Write(bw);
+                foreach (Entry e in entries) e.Write(bw);
 
                 // Re-write the header
-                var endPos = bw.BaseStream.Position;
+                long endPos = bw.BaseStream.Position;
                 bw.BaseStream.Position = startPos;
                 Header.Write(bw);
                 bw.BaseStream.Position = endPos;
@@ -103,9 +103,9 @@ namespace Sledge.Formats.Texture.Wad
         public void LoadLumps(Stream stream)
         {
             _lumps = new Dictionary<Entry, ILump>();
-            foreach (var entry in Entries.OrderBy(x => x.Offset))
+            foreach (Entry entry in Entries.OrderBy(x => x.Offset))
             {
-                var lump = LoadLump(stream, entry);
+                ILump lump = LoadLump(stream, entry);
                 _lumps.Add(entry, lump);
             }
         }
@@ -117,7 +117,7 @@ namespace Sledge.Formats.Texture.Wad
         /// <returns>The lump, if it exists</returns>
         public ILump GetLump(Entry entry)
         {
-            return _lumps.TryGetValue(entry, out var l) ? l : null;
+            return _lumps.TryGetValue(entry, out ILump l) ? l : null;
         }
 
         /// <summary>
@@ -129,7 +129,7 @@ namespace Sledge.Formats.Texture.Wad
         /// <returns>The loaded lump.</returns>
         public ILump LoadLump(Stream stream, Entry entry)
         {
-            using (var br = new BinaryReader(stream, Encoding.ASCII, true))
+            using (BinaryReader br = new BinaryReader(stream, Encoding.ASCII, true))
             {
                 br.BaseStream.Seek(entry.Offset, SeekOrigin.Begin);
 
@@ -179,7 +179,7 @@ namespace Sledge.Formats.Texture.Wad
         /// <returns>The entry of the lump that was added</returns>
         public Entry AddLump(string name, ILump lump)
         {
-            var e = new Entry(name, lump.Type);
+            Entry e = new Entry(name, lump.Type);
             _lumps[e] = lump;
             return e;
         }

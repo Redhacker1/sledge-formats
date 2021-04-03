@@ -24,7 +24,7 @@ namespace Sledge.Formats.Texture.Wad
 
         public int Write(BinaryWriter bw)
         {
-            var pos = bw.BaseStream.Position;
+            long pos = bw.BaseStream.Position;
             bw.Write((uint) Version);
             bw.Write((int) NumEntries);
             bw.Write((int) DirectoryOffset);

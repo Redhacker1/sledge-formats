@@ -21,14 +21,14 @@ namespace Sledge.Formats
         {
             if (splitCharacters == null) splitCharacters = new[] {' ', '\t'};
 
-            var result = new List<string>();
+            List<string> result = new List<string>();
 
             char[] builder = new char[line.Length];
             int b = 0;
-            var inQuote = false;
-            for (var i = 0; i < line.Length; i++)
+            bool inQuote = false;
+            for (int i = 0; i < line.Length; i++)
             {
-                var c = line[i];
+                char c = line[i];
                 if (c == escapeChar)
                 {
                     // Escape character, skip the next character

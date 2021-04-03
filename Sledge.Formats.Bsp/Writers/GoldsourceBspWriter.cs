@@ -19,7 +19,7 @@ namespace Sledge.Formats.Bsp.Writers
         public void WriteHeader(BspFile file, IEnumerable<Blob> blobs, BinaryWriter bw)
         {
             bw.Write((int) Version.Goldsource);
-            foreach (var blob in blobs)
+            foreach (Blob blob in blobs)
             {
                 bw.Write(blob.Offset);
                 bw.Write(blob.Length);
@@ -28,7 +28,7 @@ namespace Sledge.Formats.Bsp.Writers
 
         public IEnumerable<ILump> GetLumps(BspFile bsp)
         {
-            var types = new[]
+            Type[] types = new[]
             {
                 typeof(Entities),
                 typeof(Planes),

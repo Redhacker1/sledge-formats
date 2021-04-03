@@ -21,32 +21,32 @@ namespace Sledge.Formats.Map.Formats
 
         public MapFile Read(Stream stream)
         {
-            using (var br = new BinaryReader(stream, Encoding.ASCII, true))
+            using (BinaryReader br = new BinaryReader(stream, Encoding.ASCII, true))
             {
                 // JMF header test
-                var header = br.ReadFixedLengthString(Encoding.ASCII, 4);
+                string header = br.ReadFixedLengthString(Encoding.ASCII, 4);
                 Util.Assert(header == "JHMF", $"Incorrect JMF header. Expected 'JHMF', got '{header}'.");
 
                 // Only JHMF version 121 is supported for the moment.
-                var version = br.ReadInt32();
+                int version = br.ReadInt32();
                 Util.Assert(version == 121, $"Unsupported JMF version number. Expected 121, got {version}.");
 
                 // Appears to be an array of locations to export to .map
-                var numExportStrings = br.ReadInt32();
-                for (var i = 0; i < numExportStrings; i++)
+                int numExportStrings = br.ReadInt32();
+                for (int i = 0; i < numExportStrings; i++)
                 {
                     ReadString(br);
                 }
 
-                var map = new MapFile();
+                MapFile map = new MapFile();
 
-                var groups = ReadGroups(map, br);
+                List<JmfGroup> groups = ReadGroups(map, br);
                 ReadVisgroups(map, br);
-                var cordonLow = br.ReadVector3();
-                var cordonHigh = br.ReadVector3();
+                Vector3 cordonLow = br.ReadVector3();
+                Vector3 cordonHigh = br.ReadVector3();
                 ReadCameras(map, br);
                 ReadPaths(map, br);
-                var entities = ReadEntities(map, br);
+                List<JmfEntity> entities = ReadEntities(map, br);
 
                 BuildTree(map, groups, entities);
 
@@ -56,15 +56,15 @@ namespace Sledge.Formats.Map.Formats
 
         #region Read
 
-        private void BuildTree(MapFile map, IEnumerable<JmfGroup> groups, IReadOnlyCollection<JmfEntity> entities)
+        void BuildTree(MapFile map, IEnumerable<JmfGroup> groups, IReadOnlyCollection<JmfEntity> entities)
         {
-            var groupIds = new Dictionary<int, int>(); // file group id -> actual id
-            var objTree = new Dictionary<int, MapObject>(); // object id -> object
+            Dictionary<int, int> groupIds = new Dictionary<int, int>(); // file group id -> actual id
+            Dictionary<int, MapObject> objTree = new Dictionary<int, MapObject>(); // object id -> object
             
-            var currentId = 2; // worldspawn is 1
+            int currentId = 2; // worldspawn is 1
             objTree[1] = map.Worldspawn;
 
-            var worldspawnEntity = entities.FirstOrDefault(x => x.Entity.ClassName == "worldspawn");
+            JmfEntity worldspawnEntity = entities.FirstOrDefault(x => x.Entity.ClassName == "worldspawn");
             if (worldspawnEntity != null)
             {
                 map.Worldspawn.Properties = worldspawnEntity.Entity.Properties;
@@ -76,23 +76,23 @@ namespace Sledge.Formats.Map.Formats
             // Jackhammer doesn't allow a group within an entity, so groups
             // will only be children of worldspawn or another group. We can
             // build the group hierarchy immediately.
-            var groupList = groups.ToList();
-            var groupCount = groupList.Count;
+            List<JmfGroup> groupList = groups.ToList();
+            int groupCount = groupList.Count;
             while (groupList.Any())
             {
-                var pcs = groupList.Where(x => x.ID == x.ParentID || x.ParentID == 0 || groupIds.ContainsKey(x.ParentID)).ToList();
-                foreach (var g in pcs)
+                List<JmfGroup> pcs = groupList.Where(x => x.ID == x.ParentID || x.ParentID == 0 || groupIds.ContainsKey(x.ParentID)).ToList();
+                foreach (JmfGroup g in pcs)
                 {
-                    var gid = currentId++;
+                    int gid = currentId++;
                     groupIds[g.ID] = gid;
                     groupList.Remove(g);
 
-                    var group = new Group
+                    Group group = new Group
                     {
                         Color = g.Color
                     };
 
-                    var parentObjId = g.ID == g.ParentID || g.ParentID == 0 ? 1 : groupIds[g.ParentID];
+                    int parentObjId = g.ID == g.ParentID || g.ParentID == 0 ? 1 : groupIds[g.ParentID];
                     objTree[parentObjId].Children.Add(group);
                     objTree[gid] = group;
                 }
@@ -103,9 +103,9 @@ namespace Sledge.Formats.Map.Formats
 
             // For non-worldspawn solids, they are direct children of their entity.
             // For non-worldspawn entities, they're either a child of a group or of the worldspawn.
-            foreach (var entity in entities.Where(x => x != worldspawnEntity))
+            foreach (JmfEntity entity in entities.Where(x => x != worldspawnEntity))
             {
-                var parentId = groupIds.ContainsKey(entity.GroupID) ? groupIds[entity.GroupID] : 1;
+                int parentId = groupIds.ContainsKey(entity.GroupID) ? groupIds[entity.GroupID] : 1;
                 objTree[parentId].Children.Add(entity.Entity);
                 
                 // Put all the entity's solids straight underneath this entity
@@ -115,22 +115,22 @@ namespace Sledge.Formats.Map.Formats
             // For worldspawn solids, they're either a child of a group or of the worldspawn.
             if (worldspawnEntity != null)
             {
-                foreach (var solid in worldspawnEntity.Solids)
+                foreach (JmfSolid solid in worldspawnEntity.Solids)
                 {
-                    var parentId = groupIds.ContainsKey(solid.GroupID) ? groupIds[solid.GroupID] : 1;
+                    int parentId = groupIds.ContainsKey(solid.GroupID) ? groupIds[solid.GroupID] : 1;
                     objTree[parentId].Children.Add(solid.Solid);
                 }
             }
         }
 
-        private List<JmfGroup> ReadGroups(MapFile map, BinaryReader br)
+        List<JmfGroup> ReadGroups(MapFile map, BinaryReader br)
         {
-            var groups = new List<JmfGroup>();
+            List<JmfGroup> groups = new List<JmfGroup>();
 
-            var numGroups = br.ReadInt32();
-            for (var i = 0; i < numGroups; i++)
+            int numGroups = br.ReadInt32();
+            for (int i = 0; i < numGroups; i++)
             {
-                var g = new JmfGroup
+                JmfGroup g = new JmfGroup
                 {
                     ID = br.ReadInt32(),
                     ParentID = br.ReadInt32(),
@@ -144,12 +144,12 @@ namespace Sledge.Formats.Map.Formats
             return groups;
         }
 
-        private static void ReadVisgroups(MapFile map, BinaryReader br)
+        static void ReadVisgroups(MapFile map, BinaryReader br)
         {
-            var numVisgroups = br.ReadInt32();
-            for (var i = 0; i < numVisgroups; i++)
+            int numVisgroups = br.ReadInt32();
+            for (int i = 0; i < numVisgroups; i++)
             {
-                var vis = new Visgroup
+                Visgroup vis = new Visgroup
                 {
                     Name = ReadString(br),
                     ID = br.ReadInt32(),
@@ -160,12 +160,12 @@ namespace Sledge.Formats.Map.Formats
             }
         }
 
-        private void ReadCameras(MapFile map, BinaryReader br)
+        void ReadCameras(MapFile map, BinaryReader br)
         {
-            var numCameras = br.ReadInt32();
-            for (var i = 0; i < numCameras; i++)
+            int numCameras = br.ReadInt32();
+            for (int i = 0; i < numCameras; i++)
             {
-                var vis = new Camera
+                Camera vis = new Camera
                 {
                     EyePosition = br.ReadVector3(),
                     LookPosition = br.ReadVector3()
@@ -176,18 +176,18 @@ namespace Sledge.Formats.Map.Formats
             }
         }
 
-        private void ReadPaths(MapFile map, BinaryReader br)
+        void ReadPaths(MapFile map, BinaryReader br)
         {
-            var numPaths = br.ReadInt32();
-            for (var i = 0; i < numPaths; i++)
+            int numPaths = br.ReadInt32();
+            for (int i = 0; i < numPaths; i++)
             {
                 map.Paths.Add(ReadPath(br));
             }
         }
 
-        private static Path ReadPath(BinaryReader br)
+        static Path ReadPath(BinaryReader br)
         {
-            var path = new Path
+            Path path = new Path
             {
                 Type = ReadString(br),
                 Name = ReadString(br),
@@ -196,31 +196,31 @@ namespace Sledge.Formats.Map.Formats
             br.ReadInt32(); // flags
             br.ReadRGBAColour(); // colour
 
-            var numNodes = br.ReadInt32();
-            for (var i = 0; i < numNodes; i++)
+            int numNodes = br.ReadInt32();
+            for (int i = 0; i < numNodes; i++)
             {
-                var name = ReadString(br);
-                var fire = ReadString(br); // fire on pass
-                var node = new PathNode
+                string name = ReadString(br);
+                string fire = ReadString(br); // fire on pass
+                PathNode node = new PathNode
                 {
                     Name = name,
                     Position = br.ReadVector3()
                 };
 
-                if (!String.IsNullOrWhiteSpace(fire)) node.Properties["message"] = fire;
+                if (!string.IsNullOrWhiteSpace(fire)) node.Properties["message"] = fire;
 
-                var angles = br.ReadVector3();
+                Vector3 angles = br.ReadVector3();
                 node.Properties["angles"] = $"{angles.X} {angles.Y} {angles.Z}";
 
                 node.Properties["spawnflags"] = br.ReadInt32().ToString();
 
                 br.ReadRGBAColour(); // colour
 
-                var numProps = br.ReadInt32();
-                for (var j = 0; j < numProps; j++)
+                int numProps = br.ReadInt32();
+                for (int j = 0; j < numProps; j++)
                 {
-                    var key = ReadString(br);
-                    var value = ReadString(br);
+                    string key = ReadString(br);
+                    string value = ReadString(br);
                     if (key != null && value != null) node.Properties[key] = value;
                 }
 
@@ -229,12 +229,12 @@ namespace Sledge.Formats.Map.Formats
             return path;
         }
 
-        private List<JmfEntity> ReadEntities(MapFile map, BinaryReader br)
+        List<JmfEntity> ReadEntities(MapFile map, BinaryReader br)
         {
-            var entities = new List<JmfEntity>();
+            List<JmfEntity> entities = new List<JmfEntity>();
             while (br.BaseStream.Position < br.BaseStream.Length)
             {
-                var ent = new JmfEntity
+                JmfEntity ent = new JmfEntity
                 {
                     Entity = new Entity
                     {
@@ -242,7 +242,7 @@ namespace Sledge.Formats.Map.Formats
                     }
                 };
 
-                var origin = br.ReadVector3();
+                Vector3 origin = br.ReadVector3();
                 ent.Entity.Properties["origin"] = $"{origin.X} {origin.Y} {origin.Z}";
 
                 ent.Flags = br.ReadInt32();
@@ -251,30 +251,30 @@ namespace Sledge.Formats.Map.Formats
                 ent.Entity.Color = br.ReadRGBAColour();
                 
                 // useless (?) list of 13 strings
-                for (var i = 0; i < 13; i++) ReadString(br);
+                for (int i = 0; i < 13; i++) ReadString(br);
 
                 ent.Entity.SpawnFlags = br.ReadInt32();
 
                 br.ReadBytes(76); // unknown (!)
 
-                var numProps = br.ReadInt32();
-                for (var i = 0; i < numProps; i++)
+                int numProps = br.ReadInt32();
+                for (int i = 0; i < numProps; i++)
                 {
-                    var key = ReadString(br);
-                    var value = ReadString(br);
+                    string key = ReadString(br);
+                    string value = ReadString(br);
                     if (key != null && value != null) ent.Entity.Properties[key] = value;
                 }
 
                 ent.Entity.Visgroups = new List<int>();
 
-                var numVisgroups = br.ReadInt32();
-                for (var i = 0; i < numVisgroups; i++)
+                int numVisgroups = br.ReadInt32();
+                for (int i = 0; i < numVisgroups; i++)
                 {
                     ent.Entity.Visgroups.Add(br.ReadInt32());
                 }
 
-                var numSolids = br.ReadInt32();
-                for (var i = 0; i < numSolids; i++)
+                int numSolids = br.ReadInt32();
+                for (int i = 0; i < numSolids; i++)
                 {
                     ent.Solids.Add(ReadSolid(map, br));
                 }
@@ -285,32 +285,32 @@ namespace Sledge.Formats.Map.Formats
             return entities;
         }
 
-        private JmfSolid ReadSolid(MapFile map, BinaryReader br)
+        JmfSolid ReadSolid(MapFile map, BinaryReader br)
         {
-            var solid = new JmfSolid
+            JmfSolid solid = new JmfSolid
             {
                 Solid = new Solid()
             };
 
-            var numPatches = br.ReadInt32();
+            int numPatches = br.ReadInt32();
             solid.Flags = br.ReadInt32();
             solid.GroupID = br.ReadInt32();
             br.ReadInt32(); // group id again
             solid.Solid.Color = br.ReadRGBAColour();
             
-            var numVisgroups = br.ReadInt32();
-            for (var i = 0; i < numVisgroups; i++)
+            int numVisgroups = br.ReadInt32();
+            for (int i = 0; i < numVisgroups; i++)
             {
                 solid.Solid.Visgroups.Add(br.ReadInt32());
             }
 
-            var numFaces = br.ReadInt32();
-            for (var i = 0; i < numFaces; i++)
+            int numFaces = br.ReadInt32();
+            for (int i = 0; i < numFaces; i++)
             {
                 solid.Solid.Faces.Add(ReadFace(br));
             }
 
-            for (var i = 0; i < numPatches; i++)
+            for (int i = 0; i < numPatches; i++)
             {
                 solid.Solid.Meshes.Add(ReadPatch(br));
             }
@@ -318,22 +318,22 @@ namespace Sledge.Formats.Map.Formats
             return solid;
         }
 
-        private Face ReadFace(BinaryReader br)
+        Face ReadFace(BinaryReader br)
         {
-            var face = new Face();
+            Face face = new Face();
 
             br.ReadInt32(); // something
 
-            var numVertices = br.ReadInt32();
+            int numVertices = br.ReadInt32();
             ReadSurfaceProperties(face, br);
 
-            var norm = br.ReadVector3();
-            var distance = br.ReadSingle();
+            Vector3 norm = br.ReadVector3();
+            float distance = br.ReadSingle();
             face.Plane = new Plane(norm, distance);
             
             br.ReadInt32(); // something 2
 
-            for (var i = 0; i < numVertices; i++)
+            for (int i = 0; i < numVertices; i++)
             {
                 br.ReadVector3(); // texture coordinate
                 face.Vertices.Add(br.ReadVector3());
@@ -342,9 +342,9 @@ namespace Sledge.Formats.Map.Formats
             return face;
         }
 
-        private Mesh ReadPatch(BinaryReader br)
+        Mesh ReadPatch(BinaryReader br)
         {
-            var mesh = new Mesh
+            Mesh mesh = new Mesh
             {
                 Width = br.ReadInt32(),
                 Height = br.ReadInt32(),
@@ -355,11 +355,11 @@ namespace Sledge.Formats.Map.Formats
 
             br.ReadInt32(); // something
 
-            for (var i = 0; i < 32; i++)
+            for (int i = 0; i < 32; i++)
             {
-                for (var j = 0; j < 32; j++)
+                for (int j = 0; j < 32; j++)
                 {
-                    var point = new MeshPoint
+                    MeshPoint point = new MeshPoint
                     {
                         X = i,
                         Y = j,
@@ -378,7 +378,7 @@ namespace Sledge.Formats.Map.Formats
             return mesh;
         }
 
-        private void ReadSurfaceProperties(Surface surface, BinaryReader br)
+        void ReadSurfaceProperties(Surface surface, BinaryReader br)
         {
             surface.UAxis = br.ReadVector3();
             surface.XShift = br.ReadSingle();
@@ -404,15 +404,15 @@ namespace Sledge.Formats.Map.Formats
             throw new NotImplementedException();
         }
 
-        private static string ReadString(BinaryReader br)
+        static string ReadString(BinaryReader br)
         {
-            var len = br.ReadInt32();
+            int len = br.ReadInt32();
             if (len < 0) return null;
-            var chars = br.ReadChars(len);
+            char[] chars = br.ReadChars(len);
             return new string(chars).Trim('\0');
         }
-        
-        private class JmfGroup
+
+        class JmfGroup
         {
             public int ID { get; set; }
             public int ParentID { get; set; }
@@ -420,8 +420,8 @@ namespace Sledge.Formats.Map.Formats
             public int NumObjects { get; set; }
             public Color Color { get; set; }
         }
-        
-        private class JmfEntity
+
+        class JmfEntity
         {
             public int Flags { get; set; }
             public int GroupID { get; set; }
@@ -433,8 +433,8 @@ namespace Sledge.Formats.Map.Formats
                 Solids = new List<JmfSolid>();
             }
         }
-        
-        private class JmfSolid
+
+        class JmfSolid
         {
             public int Flags { get; set; }
             public int GroupID { get; set; }

@@ -7,7 +7,7 @@ namespace Sledge.Formats.Texture.Vtf
 {
     public class VtfFile
     {
-        private const string VtfHeader = "VTF";
+        const string VtfHeader = "VTF";
 
         public VtfHeader Header { get; set; }
         public List<VtfResource> Resources { get; set; }
@@ -20,24 +20,24 @@ namespace Sledge.Formats.Texture.Vtf
             Resources = new List<VtfResource>();
             Images = new List<VtfImage>();
 
-            using (var br = new BinaryReader(stream))
+            using (BinaryReader br = new BinaryReader(stream))
             {
-                var header = br.ReadFixedLengthString(Encoding.ASCII, 4);
+                string header = br.ReadFixedLengthString(Encoding.ASCII, 4);
                 if (header != VtfHeader) throw new Exception("Invalid VTF header. Expected '" + VtfHeader + "', got '" + header + "'.");
 
-                var v1 = br.ReadUInt32();
-                var v2 = br.ReadUInt32();
-                var version = v1 + (v2 / 10m); // e.g. 7.3
+                uint v1 = br.ReadUInt32();
+                uint v2 = br.ReadUInt32();
+                decimal version = v1 + (v2 / 10m); // e.g. 7.3
                 Header.Version = version;
 
-                var headerSize = br.ReadUInt32();
-                var width = br.ReadUInt16();
-                var height = br.ReadUInt16();
+                uint headerSize = br.ReadUInt32();
+                ushort width = br.ReadUInt16();
+                ushort height = br.ReadUInt16();
 
                 Header.Flags = (VtfImageFlag) br.ReadUInt32();
 
-                var numFrames = br.ReadUInt16();
-                var firstFrame = br.ReadUInt16();
+                ushort numFrames = br.ReadUInt16();
+                ushort firstFrame = br.ReadUInt16();
 
                 br.ReadBytes(4); // padding
 
@@ -47,11 +47,11 @@ namespace Sledge.Formats.Texture.Vtf
 
                 Header.BumpmapScale = br.ReadSingle();
 
-                var highResImageFormat = (VtfImageFormat) br.ReadUInt32();
-                var mipmapCount = br.ReadByte();
-                var lowResImageFormat = (VtfImageFormat) br.ReadUInt32();
-                var lowResWidth = br.ReadByte();
-                var lowResHeight = br.ReadByte();
+                VtfImageFormat highResImageFormat = (VtfImageFormat) br.ReadUInt32();
+                byte mipmapCount = br.ReadByte();
+                VtfImageFormat lowResImageFormat = (VtfImageFormat) br.ReadUInt32();
+                byte lowResWidth = br.ReadByte();
+                byte lowResHeight = br.ReadByte();
 
                 ushort depth = 1;
                 uint numResources = 0;
@@ -67,26 +67,26 @@ namespace Sledge.Formats.Texture.Vtf
                     br.ReadBytes(8);
                 }
 
-                var faces = 1;
+                int faces = 1;
                 if (Header.Flags.HasFlag(VtfImageFlag.Envmap))
                 {
                     faces = version < 7.5m && firstFrame != 0xFFFF ? 7 : 6;
                 }
 
-                var highResFormatInfo = VtfImageFormatInfo.FromFormat(highResImageFormat);
-                var lowResFormatInfo = VtfImageFormatInfo.FromFormat(lowResImageFormat);
+                VtfImageFormatInfo highResFormatInfo = VtfImageFormatInfo.FromFormat(highResImageFormat);
+                VtfImageFormatInfo lowResFormatInfo = VtfImageFormatInfo.FromFormat(lowResImageFormat);
 
-                var thumbnailSize = lowResImageFormat == VtfImageFormat.None
+                int thumbnailSize = lowResImageFormat == VtfImageFormat.None
                     ? 0
                     : lowResFormatInfo.GetSize(lowResWidth, lowResHeight);
 
-                var thumbnailPos = headerSize;
-                var dataPos = headerSize + thumbnailSize;
+                uint thumbnailPos = headerSize;
+                long dataPos = headerSize + thumbnailSize;
 
-                for (var i = 0; i < numResources; i++)
+                for (int i = 0; i < numResources; i++)
                 {
-                    var type = (VtfResourceType) br.ReadUInt32();
-                    var data = br.ReadUInt32();
+                    VtfResourceType type = (VtfResourceType) br.ReadUInt32();
+                    uint data = br.ReadUInt32();
                     switch (type)
                     {
                         case VtfResourceType.LowResImage:
@@ -117,7 +117,7 @@ namespace Sledge.Formats.Texture.Vtf
                 if (lowResImageFormat != VtfImageFormat.None)
                 {
                     br.BaseStream.Position = thumbnailPos;
-                    var thumbSize = lowResFormatInfo.GetSize(lowResWidth, lowResHeight);
+                    int thumbSize = lowResFormatInfo.GetSize(lowResWidth, lowResHeight);
                     LowResImage = new VtfImage
                     {
                         Format = lowResImageFormat,
@@ -128,17 +128,17 @@ namespace Sledge.Formats.Texture.Vtf
                 }
 
                 br.BaseStream.Position = dataPos;
-                for (var mip = mipmapCount - 1; mip >= 0; mip--)
+                for (int mip = mipmapCount - 1; mip >= 0; mip--)
                 {
-                    for (var frame = 0; frame < numFrames; frame++)
+                    for (int frame = 0; frame < numFrames; frame++)
                     {
-                        for (var face = 0; face < faces; face++)
+                        for (int face = 0; face < faces; face++)
                         {
-                            for (var slice = 0; slice < depth; slice++)
+                            for (int slice = 0; slice < depth; slice++)
                             {
-                                var wid = GetMipSize(width, mip);
-                                var hei = GetMipSize(height, mip);
-                                var size = highResFormatInfo.GetSize(wid, hei);
+                                int wid = GetMipSize(width, mip);
+                                int hei = GetMipSize(height, mip);
+                                int size = highResFormatInfo.GetSize(wid, hei);
 
                                 Images.Add(new VtfImage
                                 {
@@ -158,9 +158,9 @@ namespace Sledge.Formats.Texture.Vtf
             }
         }
 
-        private static int GetMipSize(int input, int level)
+        static int GetMipSize(int input, int level)
         {
-            var res = input >> level;
+            int res = input >> level;
             if (res < 1) res = 1;
             return res;
         }

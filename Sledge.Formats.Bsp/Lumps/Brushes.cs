@@ -7,7 +7,7 @@ namespace Sledge.Formats.Bsp.Lumps
 {
     public class Brushes : ILump, IList<Brush>
     {
-        private readonly IList<Brush> _brushes;
+        readonly IList<Brush> _brushes;
 
         public Brushes()
         {
@@ -18,7 +18,7 @@ namespace Sledge.Formats.Bsp.Lumps
         {
             while (br.BaseStream.Position < blob.Offset + blob.Length)
             {
-                var brush = new Brush
+                Brush brush = new Brush
                 {
                     FirstSide = br.ReadInt32(),
                     NumSides = br.ReadInt32(),
@@ -40,8 +40,8 @@ namespace Sledge.Formats.Bsp.Lumps
 
         public int Write(BinaryWriter bw, Version version)
         {
-            var pos = bw.BaseStream.Position;
-            foreach (var brush in _brushes)
+            long pos = bw.BaseStream.Position;
+            foreach (Brush brush in _brushes)
             {
                 bw.Write((int) brush.FirstSide);
                 bw.Write((int) brush.NumSides);

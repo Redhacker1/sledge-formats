@@ -10,7 +10,7 @@ namespace Sledge.Formats.Map.Formats
     {
         public static MapFile ReadFromFile(this IMapFormat mapFormat, string fileName)
         {
-            using (var fo = File.OpenRead(fileName))
+            using (FileStream fo = File.OpenRead(fileName))
             {
                 return mapFormat.Read(fo);
             }

@@ -11,7 +11,7 @@ namespace Sledge.Formats.Texture.Vtf
     // Uses logic from the excellent (LGPL-licensed) VtfLib, courtesy of Neil Jedrzejewski & Ryan Gregg
     public class VtfImageFormatInfo
     {
-        private delegate void TransformPixel(byte[] data, int offset, int count);
+        delegate void TransformPixel(byte[] data, int offset, int count);
 
         public VtfImageFormat Format { get; }
 
@@ -31,16 +31,16 @@ namespace Sledge.Formats.Texture.Vtf
         public bool IsCompressed { get; }
         public bool IsSupported { get; }
 
-        private readonly TransformPixel _pixelTransform;
+        readonly TransformPixel _pixelTransform;
 
-        private readonly bool _is8Aligned;
-        private readonly bool _is16Aligned;
-        private readonly bool _is32Aligned;
-        private readonly Mask[] _masks;
+        readonly bool _is8Aligned;
+        readonly bool _is16Aligned;
+        readonly bool _is32Aligned;
+        readonly Mask[] _masks;
 
         public static VtfImageFormatInfo FromFormat(VtfImageFormat imageFormat) => ImageFormats[imageFormat];
 
-        private VtfImageFormatInfo(
+        VtfImageFormatInfo(
             VtfImageFormat format,
             int bitsPerPixel, int bytesPerPixel,
             int redBitsPerPixel, int greenBitsPerPixel, int blueBitsPerPixel, int alphaBitsPerPixel,
@@ -86,21 +86,21 @@ namespace Sledge.Formats.Texture.Vtf
 
             if (!_is8Aligned && !_is16Aligned && !_is32Aligned)
             {
-                var masks = new[] {
+                List<Mask> masks = new[] {
                     new Mask('r', redBitsPerPixel, redIndex),
                     new Mask('g', greenBitsPerPixel, greenIndex),
                     new Mask('b', blueBitsPerPixel, blueIndex),
                     new Mask('a', alphaBitsPerPixel, alphaIndex),
                 }.OrderBy(x => x.Index).ToList();
 
-                var offset = bitsPerPixel;
-                foreach (var m in masks)
+                int offset = bitsPerPixel;
+                foreach (Mask m in masks)
                 {
                     offset -= m.Size;
                     m.Offset = offset;
                 }
 
-                var dict = masks.ToDictionary(x => x.Component, x => x);
+                Dictionary<char, Mask> dict = masks.ToDictionary(x => x.Component, x => x);
                 _masks = new[] { dict['b'], dict['g'], dict['r'], dict['a'] };
             }
         }
@@ -139,20 +139,20 @@ namespace Sledge.Formats.Texture.Vtf
         /// <returns>The data in bgra8888 format.</returns>
         public byte[] ConvertToBgra32(byte[] data, int width, int height)
         {
-            var buffer = new byte[width * height * 4];
+            byte[] buffer = new byte[width * height * 4];
 
             // No format, return blank array
             if (Format == VtfImageFormat.None) return buffer;
 
             // This is the exact format we want, take the fast path
-            else if (Format == VtfImageFormat.Bgra8888)
+            if (Format == VtfImageFormat.Bgra8888)
             {
                 Array.Copy(data, buffer, buffer.Length);
                 return buffer;
             }
 
             // Handle compressed formats
-            else if (IsCompressed)
+            if (IsCompressed)
             {
                 switch (Format)
                 {
@@ -187,23 +187,23 @@ namespace Sledge.Formats.Texture.Vtf
             // Special logic for half-precision HDR format
             else if (Format == VtfImageFormat.Rgba16161616F)
             {
-                var logAverageLuminance = 0.0f;
+                float logAverageLuminance = 0.0f;
 
-                var shorts = new ushort[data.Length / 2];
+                ushort[] shorts = new ushort[data.Length / 2];
                 for (int i = 0, j = 0; i < data.Length; i += BytesPerPixel, j += 4)
                 {
-                    for (var k = 0; k < 4; k++)
+                    for (int k = 0; k < 4; k++)
                     {
                         shorts[j + k] = BitConverter.ToUInt16(data, i + k * 2);
                     }
 
-                    var lum = shorts[j + 0] * 0.299f + shorts[j + 1] * 0.587f + shorts[j + 2] * 0.114f;
+                    float lum = shorts[j + 0] * 0.299f + shorts[j + 1] * 0.587f + shorts[j + 2] * 0.114f;
                     logAverageLuminance += (float) Math.Log(0.0000000001d + lum);
                 }
 
                 logAverageLuminance = (float) Math.Exp(logAverageLuminance / (width * height));
 
-                for (var i = 0; i < shorts.Length; i += 4)
+                for (int i = 0; i < shorts.Length; i += 4)
                 {
                     TransformFp16(shorts, i, logAverageLuminance);
 
@@ -219,10 +219,10 @@ namespace Sledge.Formats.Texture.Vtf
             {
                 for (int i = 0, j = 0; i < data.Length; i += BytesPerPixel, j += 4)
                 {
-                    var b = BlueIndex  >= 0 ? BitConverter.ToUInt16(data, i + BlueIndex  * 2) : UInt16.MinValue;
-                    var g = GreenIndex >= 0 ? BitConverter.ToUInt16(data, i + GreenIndex * 2) : UInt16.MinValue;
-                    var r = RedIndex   >= 0 ? BitConverter.ToUInt16(data, i + RedIndex   * 2) : UInt16.MinValue;
-                    var a = AlphaIndex >= 0 ? BitConverter.ToUInt16(data, i + AlphaIndex * 2) : UInt16.MaxValue;
+                    ushort b = BlueIndex  >= 0 ? BitConverter.ToUInt16(data, i + BlueIndex  * 2) : ushort.MinValue;
+                    ushort g = GreenIndex >= 0 ? BitConverter.ToUInt16(data, i + GreenIndex * 2) : ushort.MinValue;
+                    ushort r = RedIndex   >= 0 ? BitConverter.ToUInt16(data, i + RedIndex   * 2) : ushort.MinValue;
+                    ushort a = AlphaIndex >= 0 ? BitConverter.ToUInt16(data, i + AlphaIndex * 2) : ushort.MaxValue;
 
                     buffer[j + 0] = (byte) (b >> 8);
                     buffer[j + 1] = (byte) (g >> 8);
@@ -238,8 +238,8 @@ namespace Sledge.Formats.Texture.Vtf
             {
                 for (int i = 0, j = 0; i < data.Length; i += BytesPerPixel, j += 4)
                 {
-                    var val = 0u;
-                    for (var k = BytesPerPixel - 1; k >= 0; k--)
+                    uint val = 0u;
+                    for (int k = BytesPerPixel - 1; k >= 0; k--)
                     {
                         val = val << 8;
                         val |= data[i + k];
@@ -260,7 +260,7 @@ namespace Sledge.Formats.Texture.Vtf
             return buffer;
         }
 
-        private static void TransformFp16(ushort[] shorts, int offset, float logAverageLuminance)
+        static void TransformFp16(ushort[] shorts, int offset, float logAverageLuminance)
         {
             const float fp16HdrKey = 4.0f;
             const float fp16HdrShift = 0.0f;
@@ -268,12 +268,12 @@ namespace Sledge.Formats.Texture.Vtf
 
             float sR = shorts[offset + 0], sG = shorts[offset + 1], sB = shorts[offset + 2];
 
-            var sY = sR * 0.299f + sG * 0.587f + sB * 0.114f;
+            float sY = sR * 0.299f + sG * 0.587f + sB * 0.114f;
 
-            var sU = (sB - sY) * 0.565f;
-            var sV = (sR - sY) * 0.713f;
+            float sU = (sB - sY) * 0.565f;
+            float sV = (sR - sY) * 0.713f;
 
-            var sTemp = sY;
+            float sTemp = sY;
 
             sTemp = fp16HdrKey * sTemp / logAverageLuminance;
             sTemp = sTemp / (1.0f + sTemp);
@@ -285,13 +285,13 @@ namespace Sledge.Formats.Texture.Vtf
 
             ushort Clamp(double sValue)
             {
-                if (sValue < UInt16.MinValue) return UInt16.MinValue;
-                if (sValue > UInt16.MaxValue) return UInt16.MaxValue;
+                if (sValue < ushort.MinValue) return ushort.MinValue;
+                if (sValue > ushort.MaxValue) return ushort.MaxValue;
                 return (ushort) sValue;
             }
         }
 
-        private static readonly Dictionary<VtfImageFormat, VtfImageFormatInfo> ImageFormats = new Dictionary<VtfImageFormat, VtfImageFormatInfo>
+        static readonly Dictionary<VtfImageFormat, VtfImageFormatInfo> ImageFormats = new Dictionary<VtfImageFormat, VtfImageFormatInfo>
         {
             {VtfImageFormat.None, null},
             {VtfImageFormat.Rgba8888, new VtfImageFormatInfo(VtfImageFormat.Rgba8888, 32, 4, 8, 8, 8, 8, 0, 1, 2, 3, false, true)},
@@ -335,9 +335,9 @@ namespace Sledge.Formats.Texture.Vtf
             {VtfImageFormat.Ati2N, new VtfImageFormatInfo(VtfImageFormat.Ati2N, 8, 0, 0, 0, 0, 0, -1, -1, -1, -1, true, false)},
         };
 
-        private static void TransformBluescreen(byte[] bytes, int index, int count)
+        static void TransformBluescreen(byte[] bytes, int index, int count)
         {
-            for (var i = index; i < index + count; i += 4)
+            for (int i = index; i < index + count; i += 4)
             {
                 if (bytes[i + 0] == byte.MaxValue && bytes[i + 1] == 0 && bytes[i + 2] == 0)
                 {
@@ -346,19 +346,19 @@ namespace Sledge.Formats.Texture.Vtf
             }
         }
 
-        private static void TransformLuminance(byte[] bytes, int index, int count)
+        static void TransformLuminance(byte[] bytes, int index, int count)
         {
-            for (var i = index; i < index + count; i += 4)
+            for (int i = index; i < index + count; i += 4)
             {
                 bytes[i + 0] = bytes[i + 2];
                 bytes[i + 1] = bytes[i + 2];
             }
         }
 
-        private static byte PartialToByte(byte partial, int bits)
+        static byte PartialToByte(byte partial, int bits)
         {
             byte b = 0;
-            var dest = 8;
+            int dest = 8;
             while (dest >= bits)
             {
                 b <<= bits;
@@ -374,13 +374,13 @@ namespace Sledge.Formats.Texture.Vtf
             return b;
         }
 
-        private class Mask
+        class Mask
         {
             public char Component { get; }
             public int Size { get; }
             public int Index { get; }
             public int Offset { get; set; }
-            private uint Bitmask => ~0u >> (32 - Size);
+            uint Bitmask => ~0u >> (32 - Size);
 
             public Mask(char component, int size, int index)
             {
@@ -391,8 +391,8 @@ namespace Sledge.Formats.Texture.Vtf
 
             public byte Apply(uint value, int bitsPerPixel)
             {
-                if (Index < 0) return Component == 'a' ? Byte.MaxValue : Byte.MinValue;
-                var im = value >> (bitsPerPixel - Offset - Size);
+                if (Index < 0) return Component == 'a' ? byte.MaxValue : byte.MinValue;
+                uint im = value >> (bitsPerPixel - Offset - Size);
                 im &= Bitmask;
                 return PartialToByte((byte) im, Size);
             }

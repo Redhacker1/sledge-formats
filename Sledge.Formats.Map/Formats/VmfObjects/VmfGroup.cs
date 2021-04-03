@@ -21,14 +21,14 @@ namespace Sledge.Formats.Map.Formats.VmfObjects
 
         public override MapObject ToMapObject()
         {
-            var grp = new Group();
+            Group grp = new Group();
             Editor.Apply(grp);
             return grp;
         }
 
         public override SerialisedObject ToSerialisedObject()
         {
-            var so = new SerialisedObject("group");
+            SerialisedObject so = new SerialisedObject("group");
             so.Set("id", ID);
 
             so.Children.Add(Editor.ToSerialisedObject());

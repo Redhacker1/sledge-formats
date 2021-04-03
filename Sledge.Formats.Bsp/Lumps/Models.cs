@@ -8,7 +8,7 @@ namespace Sledge.Formats.Bsp.Lumps
 {
     public class Models : ILump, IList<Model>
     {
-        private readonly IList<Model> _models;
+        readonly IList<Model> _models;
 
         public Models()
         {
@@ -19,7 +19,7 @@ namespace Sledge.Formats.Bsp.Lumps
         {
             while (br.BaseStream.Position < blob.Offset + blob.Length)
             {
-                var model = new Model
+                Model model = new Model
                 {
                     Mins = new Vector3(br.ReadSingle(), br.ReadSingle(), br.ReadSingle()),
                     Maxs = new Vector3(br.ReadSingle(), br.ReadSingle(), br.ReadSingle()),
@@ -54,8 +54,8 @@ namespace Sledge.Formats.Bsp.Lumps
 
         public int Write(BinaryWriter bw, Version version)
         {
-            var pos = bw.BaseStream.Position;
-            foreach (var model in _models)
+            long pos = bw.BaseStream.Position;
+            foreach (Model model in _models)
             {
                 bw.WriteVector3(model.Mins);
                 bw.WriteVector3(model.Maxs);

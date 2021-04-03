@@ -11,19 +11,17 @@ namespace Sledge.Formats.Map.Tests.Formats
         [TestMethod]
         public void TestMapFormatLoading()
         {
-            var format = new QuakeMapFormat();
-            foreach (var file in Directory.GetFiles(@"D:\Downloads\formats\map"))
+            QuakeMapFormat format = new QuakeMapFormat();
+            foreach (string file in Directory.GetFiles(@"D:\Downloads\formats\map"))
             {
-                using (var r = File.OpenRead(file))
+                using FileStream r = File.OpenRead(file);
+                try
                 {
-                    try
-                    {
-                        format.Read(r);
-                    }
-                    catch (Exception ex)
-                    {
-                        Assert.Fail($"Unable to read file: {Path.GetFileName(file)}. {ex.Message}");
-                    }
+                    format.Read(r);
+                }
+                catch (Exception ex)
+                {
+                    Assert.Fail($"Unable to read file: {Path.GetFileName(file)}. {ex.Message}");
                 }
             }
         }

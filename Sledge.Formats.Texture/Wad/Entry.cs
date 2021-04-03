@@ -33,7 +33,7 @@ namespace Sledge.Formats.Texture.Wad
 
         public int Write(BinaryWriter bw)
         {
-            var pos = bw.BaseStream.Position;
+            long pos = bw.BaseStream.Position;
             bw.Write((int) Offset);
             bw.Write((int) CompressedSize);
             bw.Write((int) UncompressedSize);

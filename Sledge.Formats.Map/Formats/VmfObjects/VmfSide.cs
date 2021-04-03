@@ -20,7 +20,7 @@ namespace Sledge.Formats.Map.Formats.VmfObjects
                 LightmapScale = obj.Get("lightmapscale", 0),
                 SmoothingGroups = obj.Get("smoothing_groups", "")
             };
-            if (Util.ParseFloatArray(obj.Get("plane", ""), new[] { ' ', '(', ')' }, 9, out var pl))
+            if (Util.ParseFloatArray(obj.Get("plane", ""), new[] { ' ', '(', ')' }, 9, out float[] pl))
             {
                 Face.Plane = NumericsExtensions.PlaneFromVertices(
                     new Vector3(pl[0], pl[1], pl[2]).Round(),
@@ -59,7 +59,7 @@ namespace Sledge.Formats.Map.Formats.VmfObjects
 
         public SerialisedObject ToSerialisedObject()
         {
-            var so = new SerialisedObject("side");
+            SerialisedObject so = new SerialisedObject("side");
 
             so.Set("id", ID);
             so.Set("plane", $"({FormatVector3(Face.Vertices[0])}) ({FormatVector3(Face.Vertices[1])}) ({FormatVector3(Face.Vertices[2])})");
@@ -73,12 +73,12 @@ namespace Sledge.Formats.Map.Formats.VmfObjects
             return so;
         }
 
-        private static string FormatVector3(Vector3 c)
+        static string FormatVector3(Vector3 c)
         {
             return $"{FormatDecimal(c.X)} {FormatDecimal(c.Y)} {FormatDecimal(c.Z)}";
         }
 
-        private static string FormatDecimal(float d)
+        static string FormatDecimal(float d)
         {
             return d.ToString("0.00####", CultureInfo.InvariantCulture);
         }

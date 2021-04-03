@@ -8,15 +8,15 @@ namespace Sledge.Formats.Packages
     // https://developer.valvesoftware.com/wiki/VPK_File_Format
     public class VpkPackage : IPackage
     {
-        private const uint Signature = 0x55aa1234;
-        private const string DirString = "_dir";
-        private const ushort DirectoryIndex = 0x7fff;
-        private const ushort EntryTerminator = 0xffff;
+        const uint Signature = 0x55aa1234;
+        const string DirString = "_dir";
+        const ushort DirectoryIndex = 0x7fff;
+        const ushort EntryTerminator = 0xffff;
 
-        private readonly Stream _stream;
-        private readonly uint _directoryDataOffset;
-        private readonly List<PackageEntry> _entries;
-        private readonly Dictionary<int, Stream> _chunks;
+        readonly Stream _stream;
+        readonly uint _directoryDataOffset;
+        readonly List<PackageEntry> _entries;
+        readonly Dictionary<int, Stream> _chunks;
 
         public IEnumerable<PackageEntry> Entries => _entries;
 
@@ -25,22 +25,22 @@ namespace Sledge.Formats.Packages
             _entries = new List<PackageEntry>();
             _stream = OpenFile(directoryFile);
 
-            var folder = Path.GetDirectoryName(directoryFile) ?? "";
-            var nameWithoutExt = Path.GetFileNameWithoutExtension(directoryFile) ?? "";
-            var ext = Path.GetExtension(directoryFile);
+            string folder = Path.GetDirectoryName(directoryFile) ?? "";
+            string nameWithoutExt = Path.GetFileNameWithoutExtension(directoryFile) ?? "";
+            string ext = Path.GetExtension(directoryFile);
 
             if (!nameWithoutExt.EndsWith(DirString)) throw new Exception("This is not a valid VPK directory file.");
             
-            var baseName = nameWithoutExt.Substring(0, nameWithoutExt.Length - DirString.Length);
+            string baseName = nameWithoutExt.Substring(0, nameWithoutExt.Length - DirString.Length);
 
             // Scan and find all chunk files that match this vpk directory
             _chunks = new Dictionary<int, Stream>();
-            var matchingFiles = Directory.GetFiles(folder, baseName + "_???" + ext);
-            foreach (var mf in matchingFiles)
+            string[] matchingFiles = Directory.GetFiles(folder, baseName + "_???" + ext);
+            foreach (string mf in matchingFiles)
             {
-                var fn = Path.GetFileNameWithoutExtension(mf);
-                var index = fn.Substring(fn.Length - 3);
-                if (UInt16.TryParse(index, out var num))
+                string fn = Path.GetFileNameWithoutExtension(mf);
+                string index = fn.Substring(fn.Length - 3);
+                if (ushort.TryParse(index, out ushort num))
                 {
                     _chunks[num] = OpenFile(mf);
                 }
@@ -49,13 +49,13 @@ namespace Sledge.Formats.Packages
             _chunks[DirectoryIndex] = _stream;
 
             // Read the data from the vpk
-            using (var br = new BinaryReader(_stream, Encoding.UTF8, true))
+            using (BinaryReader br = new BinaryReader(_stream, Encoding.UTF8, true))
             {
-                var sig = br.ReadUInt32();
+                uint sig = br.ReadUInt32();
                 if (sig != Signature) throw new Exception($"Unknown package signature: Expected 0x{Signature:x8}, got 0x{sig:x8}.");
 
-                var version = br.ReadUInt32();
-                var treeLength = br.ReadUInt32();
+                uint version = br.ReadUInt32();
+                uint treeLength = br.ReadUInt32();
                 _directoryDataOffset = treeLength;
                 switch (version)
                 {
@@ -64,10 +64,10 @@ namespace Sledge.Formats.Packages
                         break;
                     case 2:
                         _directoryDataOffset += 28;
-                        var dataLength = br.ReadInt32();
-                        var archiveMd5Length = br.ReadUInt32();
-                        var fileMd5Length = br.ReadInt32();
-                        var signatureLength = br.ReadInt32();
+                        int dataLength = br.ReadInt32();
+                        uint archiveMd5Length = br.ReadUInt32();
+                        int fileMd5Length = br.ReadInt32();
+                        int signatureLength = br.ReadInt32();
                         break;
                     default:
                         throw new Exception($"Unknown version number: Expected 1 or 2, got {version}.");
@@ -84,7 +84,7 @@ namespace Sledge.Formats.Packages
                         while ((filename = br.ReadNullTerminatedString()).Length > 0)
                         {
                             // get me some file information
-                            var entry = ReadEntry(br, path + filename + "." + extension);
+                            PackageEntry entry = ReadEntry(br, path + filename + "." + extension);
                             _entries.Add(entry);
                         }
                     }
@@ -92,18 +92,18 @@ namespace Sledge.Formats.Packages
             }
         }
 
-        private PackageEntry ReadEntry(BinaryReader br, string path)
+        PackageEntry ReadEntry(BinaryReader br, string path)
         {
-            var crc = br.ReadUInt32();
-            var preloadBytes = br.ReadUInt16();
-            var archiveIndex = br.ReadUInt16(); // 0x7fff = directory archive
-            var entryOffset = br.ReadUInt32(); // If archive directory, relative to END of directory structure
-            var entryLength = br.ReadUInt32(); // If 0, preload data contains the entire file
+            uint crc = br.ReadUInt32();
+            ushort preloadBytes = br.ReadUInt16();
+            ushort archiveIndex = br.ReadUInt16(); // 0x7fff = directory archive
+            uint entryOffset = br.ReadUInt32(); // If archive directory, relative to END of directory structure
+            uint entryLength = br.ReadUInt32(); // If 0, preload data contains the entire file
 
-            var terminator = br.ReadUInt16();
+            ushort terminator = br.ReadUInt16();
             if (terminator != EntryTerminator) throw new Exception($"Invalid terminator. Expected {EntryTerminator:x8}, got {terminator:x8}.");
 
-            var preloadOffset = br.BaseStream.Position;
+            long preloadOffset = br.BaseStream.Position;
             // Skip past the preload bytes
             br.BaseStream.Seek(preloadBytes, SeekOrigin.Current);
 
@@ -118,14 +118,14 @@ namespace Sledge.Formats.Packages
             };
         }
 
-        private static Stream OpenFile(string file)
+        static Stream OpenFile(string file)
         {
             return Stream.Synchronized(new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, 4096, FileOptions.RandomAccess));
         }
 
         public Stream Open(PackageEntry entry)
         {
-            var streams = new List<Stream>();
+            List<Stream> streams = new List<Stream>();
 
             if (entry.PreloadSize > 0) streams.Add(new SubStream(_stream, entry.PreloadOffset, entry.PreloadSize));
             if (entry.Size > 0) streams.Add(new SubStream(_chunks[entry.Chunk], entry.Offset, entry.Size));
@@ -136,7 +136,7 @@ namespace Sledge.Formats.Packages
         public void Dispose()
         {
             // _stream is included in the _chunks collection
-            foreach (var s in _chunks.Values) s.Dispose();
+            foreach (Stream s in _chunks.Values) s.Dispose();
             _chunks.Clear();
         }
     }

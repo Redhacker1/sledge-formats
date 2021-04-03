@@ -9,7 +9,7 @@ namespace Sledge.Formats.Bsp.Lumps
 {
     public class Texinfo : ILump, IList<TextureInfo>
     {
-        private readonly IList<TextureInfo> _textureInfos;
+        readonly IList<TextureInfo> _textureInfos;
 
         public Texinfo()
         {
@@ -20,7 +20,7 @@ namespace Sledge.Formats.Bsp.Lumps
         {
             while (br.BaseStream.Position < blob.Offset + blob.Length)
             {
-                var info = new TextureInfo
+                TextureInfo info = new TextureInfo
                 {
                     S = new Vector4(br.ReadSingle(), br.ReadSingle(), br.ReadSingle(), br.ReadSingle()),
                     T = new Vector4(br.ReadSingle(), br.ReadSingle(), br.ReadSingle(), br.ReadSingle()),
@@ -57,8 +57,8 @@ namespace Sledge.Formats.Bsp.Lumps
 
         public int Write(BinaryWriter bw, Version version)
         {
-            var pos = bw.BaseStream.Position;
-            foreach (var ti in _textureInfos)
+            long pos = bw.BaseStream.Position;
+            foreach (TextureInfo ti in _textureInfos)
             {
                 bw.Write((float) ti.S.X);
                 bw.Write((float) ti.S.Y);

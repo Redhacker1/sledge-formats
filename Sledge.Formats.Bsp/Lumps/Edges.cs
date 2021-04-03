@@ -7,7 +7,7 @@ namespace Sledge.Formats.Bsp.Lumps
 {
     public class Edges : ILump, IList<Edge>
     {
-        private readonly IList<Edge> _edges;
+        readonly IList<Edge> _edges;
 
         public Edges()
         {
@@ -18,7 +18,7 @@ namespace Sledge.Formats.Bsp.Lumps
         {
             while (br.BaseStream.Position < blob.Offset + blob.Length)
             {
-                var edge = new Edge
+                Edge edge = new Edge
                 {
                     Start = br.ReadUInt16(),
                     End = br.ReadUInt16()
@@ -39,7 +39,7 @@ namespace Sledge.Formats.Bsp.Lumps
 
         public int Write(BinaryWriter bw, Version version)
         {
-            foreach (var edge in _edges)
+            foreach (Edge edge in _edges)
             {
                 bw.Write((ushort) edge.Start);
                 bw.Write((ushort) edge.End);

@@ -19,11 +19,11 @@ namespace Sledge.Formats.Map.Objects
         {
             if (Faces.Count < 4) return;
 
-            var poly = new Polyhedron(Faces.Select(x => new Plane(x.Plane.Normal.ToPrecisionVector3(), x.Plane.D)));
+            Polyhedron poly = new Polyhedron(Faces.Select(x => new Plane(x.Plane.Normal.ToPrecisionVector3(), x.Plane.D)));
 
-            foreach (var face in Faces)
+            foreach (Face face in Faces)
             {
-                var pg = poly.Polygons.FirstOrDefault(x => x.Plane.Normal.EquivalentTo(face.Plane.Normal.ToPrecisionVector3(), 0.0075f)); // Magic number that seems to match VHE
+                Polygon pg = poly.Polygons.FirstOrDefault(x => x.Plane.Normal.EquivalentTo(face.Plane.Normal.ToPrecisionVector3(), 0.0075f)); // Magic number that seems to match VHE
                 if (pg != null)
                 {
                     face.Vertices.AddRange(pg.Vertices.Select(x => x.ToStandardVector3()));

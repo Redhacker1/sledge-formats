@@ -11,10 +11,8 @@ namespace Sledge.Formats.Texture.Tests.Vtf
         [TestMethod]
         public void TestLoadVtf()
         {
-            using (var f = File.OpenRead(@"D:\sandbox\16F.vtf"))
-            {
-                var vtf = new VtfFile(f);
-            }
+            using FileStream f = File.OpenRead(@"D:\Portal2Decomp\materials\cable\cable.vtf");
+            VtfFile vtf = new VtfFile(f);
         }
     }
 }

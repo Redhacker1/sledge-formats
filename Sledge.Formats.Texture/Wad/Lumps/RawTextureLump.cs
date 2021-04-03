@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using Sledge.Formats.Id;
 
 namespace Sledge.Formats.Texture.Wad.Lumps
 {
@@ -13,7 +14,7 @@ namespace Sledge.Formats.Texture.Wad.Lumps
 
         protected RawTextureLump(BinaryReader br, bool readPalette)
         {
-            var t = Read(br, readPalette);
+            MipTexture t = Read(br, readPalette);
             Name = t.Name;
             Width = t.Width;
             Height = t.Height;
@@ -24,7 +25,7 @@ namespace Sledge.Formats.Texture.Wad.Lumps
 
         public virtual int Write(BinaryWriter bw)
         {
-            var pos = bw.BaseStream.Position;
+            long pos = bw.BaseStream.Position;
             Write(bw, false, this);
             return (int) (bw.BaseStream.Position - pos);
         }

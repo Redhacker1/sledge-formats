@@ -11,19 +11,17 @@ namespace Sledge.Formats.Map.Tests.Formats
         [TestMethod]
         public void TestRmfFormatLoading()
         {
-            var format = new WorldcraftRmfFormat();
-            foreach (var file in Directory.GetFiles(@"D:\Downloads\formats\rmf"))
+            WorldcraftRmfFormat format = new WorldcraftRmfFormat();
+            foreach (string file in Directory.GetFiles(@"D:\Downloads\formats\rmf"))
             {
-                using (var r = File.OpenRead(file))
+                using FileStream r = File.OpenRead(file);
+                try
                 {
-                    try
-                    {
-                        format.Read(r);
-                    }
-                    catch (Exception ex)
-                    {
-                        Assert.Fail($"Unable to read file: {Path.GetFileName(file)}. {ex.Message}");
-                    }
+                    format.Read(r);
+                }
+                catch (Exception ex)
+                {
+                    Assert.Fail($"Unable to read file: {Path.GetFileName(file)}. {ex.Message}");
                 }
             }
         }

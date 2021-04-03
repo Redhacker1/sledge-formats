@@ -13,7 +13,7 @@ namespace Sledge.Formats.Texture.Wad.Lumps
 
         public override int Write(BinaryWriter bw)
         {
-            var pos = bw.BaseStream.Position;
+            long pos = bw.BaseStream.Position;
             Write(bw, true, this);
             return (int)(bw.BaseStream.Position - pos);
         }

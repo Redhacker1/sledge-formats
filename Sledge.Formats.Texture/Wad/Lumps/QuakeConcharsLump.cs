@@ -18,7 +18,7 @@ namespace Sledge.Formats.Texture.Wad.Lumps
 
         public int Write(BinaryWriter bw)
         {
-            var pos = bw.BaseStream.Position;
+            long pos = bw.BaseStream.Position;
             bw.Write((byte[]) ImageData);
             return (int)(bw.BaseStream.Position - pos);
         }

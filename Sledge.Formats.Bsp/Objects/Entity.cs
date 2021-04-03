@@ -19,13 +19,13 @@ namespace Sledge.Formats.Bsp.Objects
         {
             if (!KeyValues.ContainsKey(name)) return defaultValue;
 
-            var val = KeyValues[name];
-            var spl = val.Split(' ');
+            string val = KeyValues[name];
+            string[] spl = val.Split(' ');
             if (spl.Length != 3) return defaultValue;
 
-            if (!float.TryParse(spl[0], out var x)) return defaultValue;
-            if (!float.TryParse(spl[1], out var y)) return defaultValue;
-            if (!float.TryParse(spl[2], out var z)) return defaultValue;
+            if (!float.TryParse(spl[0], out float x)) return defaultValue;
+            if (!float.TryParse(spl[1], out float y)) return defaultValue;
+            if (!float.TryParse(spl[2], out float z)) return defaultValue;
 
             return new Vector3(x, y, z);
         }
@@ -33,7 +33,7 @@ namespace Sledge.Formats.Bsp.Objects
         public T Get<T>(string name, T defaultValue)
         {
             if (!KeyValues.ContainsKey(name)) return defaultValue;
-            var val = KeyValues[name];
+            string val = KeyValues[name];
             try
             {
                 return (T) Convert.ChangeType(val, typeof(T));

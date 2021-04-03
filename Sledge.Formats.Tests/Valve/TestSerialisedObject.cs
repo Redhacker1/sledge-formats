@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -9,26 +10,26 @@ namespace Sledge.Formats.Tests.Valve
     [TestClass]
     public class TestSerialisedObject
     {
-        private static Stream Streamify(string s)
+        static Stream Streamify(string s)
         {
-            var ms = new MemoryStream(Encoding.UTF8.GetBytes(s));
+            MemoryStream ms = new MemoryStream(Encoding.UTF8.GetBytes(s));
             ms.Seek(0, SeekOrigin.Begin);
             return ms;
         }
 
-        private const string Q = "\"";
+        const string Q = "\"";
 
         [TestMethod]
         public void TestLoadingSimple()
         {
-            var fmt = new SerialisedObjectFormatter();
-            using var input = Streamify($@"Test
+            SerialisedObjectFormatter fmt = new SerialisedObjectFormatter();
+            using Stream input = Streamify($@"Test
 {{
     {Q}Key1{Q} {Q}Value1{Q}
     {Q}Key2{Q} {Q}Value2{Q}
 }}
 ");
-            var output = fmt.Deserialize(input).ToList();
+            List<SerialisedObject> output = fmt.Deserialize(input).ToList();
             Assert.AreEqual(1, output.Count);
             Assert.AreEqual("Test", output[0].Name);
             Assert.AreEqual(0, output[0].Children.Count);
@@ -42,15 +43,15 @@ namespace Sledge.Formats.Tests.Valve
         [TestMethod]
         public void TestLoadingKeyOrder()
         {
-            var fmt = new SerialisedObjectFormatter();
-            using var input = Streamify($@"Test
+            SerialisedObjectFormatter fmt = new SerialisedObjectFormatter();
+            using Stream input = Streamify($@"Test
 {{
     {Q}Key{Q} {Q}1{Q}
     {Q}Key{Q} {Q}3{Q}
     {Q}Key{Q} {Q}2{Q}
 }}
 ");
-            var output = fmt.Deserialize(input).ToList();
+            List<SerialisedObject> output = fmt.Deserialize(input).ToList();
             Assert.AreEqual(1, output.Count);
             Assert.AreEqual("Test", output[0].Name);
             Assert.AreEqual(0, output[0].Children.Count);
@@ -66,8 +67,8 @@ namespace Sledge.Formats.Tests.Valve
         [TestMethod]
         public void TestLoadingChildren()
         {
-            var fmt = new SerialisedObjectFormatter();
-            using var input = Streamify($@"Test1
+            SerialisedObjectFormatter fmt = new SerialisedObjectFormatter();
+            using Stream input = Streamify($@"Test1
 {{
     {Q}A{Q} {Q}1{Q}
     Test2
@@ -91,7 +92,7 @@ Test4
     {Q}E{Q} {Q}5{Q}
 }}
 ");
-            var output = fmt.Deserialize(input).ToList();
+            List<SerialisedObject> output = fmt.Deserialize(input).ToList();
             Assert.AreEqual(2, output.Count);
 
             Assert.AreEqual("Test1", output[0].Name);
@@ -127,13 +128,13 @@ Test4
         [TestMethod]
         public void TestEscapedQuotes()
         {
-            var fmt = new SerialisedObjectFormatter();
-            using var input = Streamify($@"Test
+            SerialisedObjectFormatter fmt = new SerialisedObjectFormatter();
+            using Stream input = Streamify($@"Test
 {{
     {Q}Key\{Q}With\{Q}Quotes{Q} {Q}Quoted\{Q}Value{Q}
 }}
 ");
-            var output = fmt.Deserialize(input).ToList();
+            List<SerialisedObject> output = fmt.Deserialize(input).ToList();
             Assert.AreEqual(1, output.Count);
             Assert.AreEqual("Test", output[0].Name);
             Assert.AreEqual(0, output[0].Children.Count);

@@ -11,19 +11,17 @@ namespace Sledge.Formats.Map.Tests.Formats
         [TestMethod]
         public void TestJmfFormatLoading()
         {
-            var format = new JackhammerJmfFormat();
-            foreach (var file in Directory.GetFiles(@"D:\Downloads\formats\jmf", "1group.jmf"))
+            JackhammerJmfFormat format = new JackhammerJmfFormat();
+            foreach (string file in Directory.GetFiles(@"D:\Downloads\formats\jmf", "1group.jmf"))
             {
-                using (var r = File.OpenRead(file))
+                using FileStream r = File.OpenRead(file);
+                try
                 {
-                    try
-                    {
-                        format.Read(r);
-                    }
-                    catch (Exception ex)
-                    {
-                        Assert.Fail($"Unable to read file: {Path.GetFileName(file)}. {ex.Message}");
-                    }
+                    format.Read(r);
+                }
+                catch (Exception ex)
+                {
+                    Assert.Fail($"Unable to read file: {Path.GetFileName(file)}. {ex.Message}");
                 }
             }
         }

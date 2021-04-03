@@ -22,7 +22,7 @@ namespace Sledge.Formats
         /// <returns>The string that was read</returns>
         public static string ReadFixedLengthString(this BinaryReader br, Encoding encoding, int length)
         {
-            var bstr = br.ReadBytes(length).TakeWhile(b => b != 0).ToArray();
+            byte[] bstr = br.ReadBytes(length).TakeWhile(b => b != 0).ToArray();
             return encoding.GetString(bstr);
         }
 
@@ -35,7 +35,7 @@ namespace Sledge.Formats
         /// <param name="str">The string to write</param>
         public static void WriteFixedLengthString(this BinaryWriter bw, Encoding encoding, int length, string str)
         {
-            var arr = new byte[length];
+            byte[] arr = new byte[length];
             encoding.GetBytes(str, 0, str.Length, arr, 0);
             bw.Write(arr, 0, length);
         }
@@ -47,7 +47,7 @@ namespace Sledge.Formats
         /// <returns>The string that was read</returns>
         public static string ReadNullTerminatedString(this BinaryReader br)
         {
-            var str = "";
+            string str = "";
             char c;
             while ((c = br.ReadChar()) != 0)
             {
@@ -76,8 +76,8 @@ namespace Sledge.Formats
         {
             // GH#87: RMF strings aren't prefixed in the same way .NET's BinaryReader expects
             // Read the byte length and then read that number of characters.
-            var len = br.ReadByte();
-            var chars = br.ReadChars(len);
+            byte len = br.ReadByte();
+            char[] chars = br.ReadChars(len);
             return new string(chars).Trim('\0');
         }
 
@@ -110,8 +110,8 @@ namespace Sledge.Formats
         /// <returns>The resulting array</returns>
         public static ushort[] ReadUshortArray(this BinaryReader br, int num)
         {
-            var arr = new ushort[num];
-            for (var i = 0; i < num; i++) arr[i] = br.ReadUInt16();
+            ushort[] arr = new ushort[num];
+            for (int i = 0; i < num; i++) arr[i] = br.ReadUInt16();
             return arr;
         }
 
@@ -123,8 +123,8 @@ namespace Sledge.Formats
         /// <returns>The resulting array</returns>
         public static short[] ReadShortArray(this BinaryReader br, int num)
         {
-            var arr = new short[num];
-            for (var i = 0; i < num; i++) arr[i] = br.ReadInt16();
+            short[] arr = new short[num];
+            for (int i = 0; i < num; i++) arr[i] = br.ReadInt16();
             return arr;
         }
 
@@ -136,8 +136,8 @@ namespace Sledge.Formats
         /// <returns>The resulting array</returns>
         public static int[] ReadIntArray(this BinaryReader br, int num)
         {
-            var arr = new int[num];
-            for (var i = 0; i < num; i++) arr[i] = br.ReadInt32();
+            int[] arr = new int[num];
+            for (int i = 0; i < num; i++) arr[i] = br.ReadInt32();
             return arr;
         }
 
@@ -149,8 +149,8 @@ namespace Sledge.Formats
         /// <returns>The resulting array</returns>
         public static decimal[] ReadSingleArrayAsDecimal(this BinaryReader br, int num)
         {
-            var arr = new decimal[num];
-            for (var i = 0; i < num; i++) arr[i] = br.ReadSingleAsDecimal();
+            decimal[] arr = new decimal[num];
+            for (int i = 0; i < num; i++) arr[i] = br.ReadSingleAsDecimal();
             return arr;
         }
 
@@ -162,8 +162,8 @@ namespace Sledge.Formats
         /// <returns>The resulting array</returns>
         public static float[] ReadSingleArray(this BinaryReader br, int num)
         {
-            var arr = new float[num];
-            for (var i = 0; i < num; i++) arr[i] = br.ReadSingle();
+            float[] arr = new float[num];
+            for (int i = 0; i < num; i++) arr[i] = br.ReadSingle();
             return arr;
         }
 
@@ -220,10 +220,10 @@ namespace Sledge.Formats
         /// <returns>The colour which was read</returns>
         public static Color ReadRGBAColour(this BinaryReader br)
         {
-            var r = br.ReadByte();
-            var g = br.ReadByte();
-            var b = br.ReadByte();
-            var a = br.ReadByte();
+            byte r = br.ReadByte();
+            byte g = br.ReadByte();
+            byte b = br.ReadByte();
+            byte a = br.ReadByte();
             return Color.FromArgb(a, r, g, b);
         }
 
@@ -242,8 +242,8 @@ namespace Sledge.Formats
 
         public static Vector3[] ReadVector3Array(this BinaryReader br, int num)
         {
-            var arr = new Vector3[num];
-            for (var i = 0; i < num; i++) arr[i] = br.ReadVector3();
+            Vector3[] arr = new Vector3[num];
+            for (int i = 0; i < num; i++) arr[i] = br.ReadVector3();
             return arr;
         }
 
@@ -265,15 +265,15 @@ namespace Sledge.Formats
 
         public static Plane ReadPlane(this BinaryReader br)
         {
-            var a = ReadVector3(br);
-            var b = ReadVector3(br);
-            var c = ReadVector3(br);
+            Vector3 a = ReadVector3(br);
+            Vector3 b = ReadVector3(br);
+            Vector3 c = ReadVector3(br);
 
-            var ab = b - a;
-            var ac = c - a;
+            Vector3 ab = b - a;
+            Vector3 ac = c - a;
 
-            var normal = ac.Cross(ab).Normalise();
-            var d = normal.Dot(a);
+            Vector3 normal = ac.Cross(ab).Normalise();
+            float d = normal.Dot(a);
 
             return new Plane(normal, d);
         }

@@ -12,19 +12,15 @@ namespace Sledge.Formats.Texture.Tests.Wad
         [TestMethod]
         public void TestLoadWad2()
         {
-            using (var f = File.OpenRead(@"D:\Downloads\formats\qwad\gfx.wad"))
-            {
-                var wad = new WadFile(f);
-            }
+            using FileStream f = File.OpenRead(@"F:\SteamLibrary\steamapps\common\quake\Id1\gfx_modified.wad");
+            WadFile wad = new WadFile(f);
         }
 
         [TestMethod]
         public void TestLoadWad3()
         {
-            using (var f = File.OpenRead(@"D:\Downloads\formats\wad\halflife.wad"))
-            {
-                var wad = new WadFile(f);
-            }
+            using FileStream f = File.OpenRead(@"F:\SteamLibrary\steamapps\common\Half-Life\valve\halflife.wad");
+            WadFile wad = new WadFile(f);
         }
     }
 }

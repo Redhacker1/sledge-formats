@@ -12,19 +12,19 @@ namespace Sledge.Formats.Map.Formats.VmfObjects
         public int SpawnFlags { get; set; }
         public Dictionary<string, string> Properties { get; set; }
 
-        private static readonly string[] ExcludedKeys = { "id", "spawnflags", "classname" };
+        static readonly string[] ExcludedKeys = { "id", "spawnflags", "classname" };
 
         public VmfEntity(SerialisedObject obj) : base(obj)
         {
             Objects = new List<VmfObject>();
-            foreach (var so in obj.Children)
+            foreach (SerialisedObject so in obj.Children)
             {
-                var o = Deserialise(so);
+                VmfObject o = Deserialise(so);
                 if (o != null) Objects.Add(o);
             }
 
             Properties = new Dictionary<string, string>();
-            foreach (var kv in obj.Properties)
+            foreach (KeyValuePair<string, string> kv in obj.Properties)
             {
                 if (kv.Key == null || ExcludedKeys.Contains(kv.Key.ToLower())) continue;
                 Properties[kv.Key] = kv.Value;
@@ -48,7 +48,7 @@ namespace Sledge.Formats.Map.Formats.VmfObjects
 
         public override MapObject ToMapObject()
         {
-            var ent = new Entity
+            Entity ent = new Entity
             {
                 ClassName = ClassName,
                 SpawnFlags = SpawnFlags,
@@ -64,11 +64,11 @@ namespace Sledge.Formats.Map.Formats.VmfObjects
 
         public override SerialisedObject ToSerialisedObject()
         {
-            var so = new SerialisedObject(SerialisedObjectName);
+            SerialisedObject so = new SerialisedObject(SerialisedObjectName);
             so.Set("id", ID);
             so.Set("classname", ClassName);
             if (SpawnFlags > 0) so.Set("spawnflags", SpawnFlags);
-            foreach (var prop in Properties)
+            foreach (KeyValuePair<string, string> prop in Properties)
             {
                 so.Properties.Add(new KeyValuePair<string, string>(prop.Key, prop.Value));
             }

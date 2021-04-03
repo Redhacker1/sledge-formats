@@ -8,10 +8,10 @@ namespace Sledge.Formats.Packages
     // http://quakewiki.org/wiki/.pak
     public class PakPackage : IPackage
     {
-        private const string Signature = "PACK";
+        const string Signature = "PACK";
 
-        private readonly Stream _stream;
-        private readonly List<PackageEntry> _entries;
+        readonly Stream _stream;
+        readonly List<PackageEntry> _entries;
 
         public IEnumerable<PackageEntry> Entries => _entries;
 
@@ -21,22 +21,22 @@ namespace Sledge.Formats.Packages
             _stream = Stream.Synchronized(new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, 4096, FileOptions.RandomAccess));
 
             // Read the data from the pak
-            using (var br = new BinaryReader(_stream, Encoding.ASCII, true))
+            using (BinaryReader br = new BinaryReader(_stream, Encoding.ASCII, true))
             {
-                var sig = br.ReadFixedLengthString(Encoding.ASCII, 4);
+                string sig = br.ReadFixedLengthString(Encoding.ASCII, 4);
                 if (sig != Signature) throw new Exception($"Unknown package signature: Expected '{Signature}', got '{sig}'.");
 
-                var treeOffset = br.ReadInt32();
-                var treeLength = br.ReadInt32();
+                int treeOffset = br.ReadInt32();
+                int treeLength = br.ReadInt32();
 
                 // Read all the entries from the pak
                 br.BaseStream.Position = treeOffset;
-                var numEntries = treeLength / 64;
-                for (var i = 0; i < numEntries; i++)
+                int numEntries = treeLength / 64;
+                for (int i = 0; i < numEntries; i++)
                 {
-                    var path = br.ReadFixedLengthString(Encoding.ASCII, 56).ToLowerInvariant();
-                    var offset = br.ReadInt32();
-                    var size = br.ReadInt32();
+                    string path = br.ReadFixedLengthString(Encoding.ASCII, 56).ToLowerInvariant();
+                    int offset = br.ReadInt32();
+                    int size = br.ReadInt32();
                     _entries.Add(new PackageEntry
                     {
                         Path = path,

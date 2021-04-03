@@ -7,7 +7,7 @@ namespace Sledge.Formats.Bsp.Lumps
 {
     public class Clipnodes : ILump, IList<Clipnode>
     {
-        private readonly IList<Clipnode> _clipnodes;
+        readonly IList<Clipnode> _clipnodes;
 
         public Clipnodes()
         {
@@ -18,7 +18,7 @@ namespace Sledge.Formats.Bsp.Lumps
         {
             while (br.BaseStream.Position < blob.Offset + blob.Length)
             {
-                var clip = new Clipnode
+                Clipnode clip = new Clipnode
                 {
                     Plane = br.ReadUInt32(),
                     Children = new[] { br.ReadInt16(), br.ReadInt16() }
@@ -39,8 +39,8 @@ namespace Sledge.Formats.Bsp.Lumps
 
         public int Write(BinaryWriter bw, Version version)
         {
-            var pos = bw.BaseStream.Position;
-            foreach (var node in _clipnodes)
+            long pos = bw.BaseStream.Position;
+            foreach (Clipnode node in _clipnodes)
             {
                 bw.Write((uint) node.Plane);
                 bw.Write((short) node.Children[0]);

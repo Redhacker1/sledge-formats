@@ -7,7 +7,7 @@ namespace Sledge.Formats.Bsp.Lumps
 {
     public class AreaPortals : ILump, IList<AreaPortal>
     {
-        private readonly IList<AreaPortal> _areaPortals;
+        readonly IList<AreaPortal> _areaPortals;
 
         public AreaPortals()
         {
@@ -18,7 +18,7 @@ namespace Sledge.Formats.Bsp.Lumps
         {
             while (br.BaseStream.Position < blob.Offset + blob.Length)
             {
-                var ap = new AreaPortal
+                AreaPortal ap = new AreaPortal
                 {
                     PortalNum = br.ReadInt32(),
                     OtherArea = br.ReadInt32()
@@ -39,8 +39,8 @@ namespace Sledge.Formats.Bsp.Lumps
 
         public int Write(BinaryWriter bw, Version version)
         {
-            var pos = bw.BaseStream.Position;
-            foreach (var ap in _areaPortals)
+            long pos = bw.BaseStream.Position;
+            foreach (AreaPortal ap in _areaPortals)
             {
                 bw.Write((int) ap.PortalNum);
                 bw.Write((int) ap.OtherArea);

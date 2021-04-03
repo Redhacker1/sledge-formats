@@ -18,11 +18,11 @@ namespace Sledge.Formats.Bsp
 
         public BspFile(Stream stream)
         {
-            using (var br = new BinaryReader(stream, Encoding.ASCII, true))
+            using (BinaryReader br = new BinaryReader(stream, Encoding.ASCII, true))
             {
                 // Read the version number
                 // More recent formats have a "magic" number when different engines forked
-                var magic = (Magic) br.ReadUInt32();
+                Magic magic = (Magic) br.ReadUInt32();
                 switch (magic)
                 {
                     case Magic.Ibsp:
@@ -35,15 +35,15 @@ namespace Sledge.Formats.Bsp
                 }
 
                 // Initialise the reader
-                var reader = _readers.First(x => x.SupportedVersion == Version);
+                IBspReader reader = _readers.First(x => x.SupportedVersion == Version);
 
                 reader.StartHeader(this, br);
 
                 // Read the blobs
                 Blobs = new List<Blob>();
-                for (var i = 0; i < reader.NumLumps; i++)
+                for (int i = 0; i < reader.NumLumps; i++)
                 {
-                    var blob = reader.ReadBlob(br);
+                    Blob blob = reader.ReadBlob(br);
                     blob.Index = i;
                     Blobs.Add(blob);
                 }
@@ -51,12 +51,12 @@ namespace Sledge.Formats.Bsp
                 reader.EndHeader(this, br);
 
                 Lumps = new List<ILump>();
-                foreach (var blob in Blobs)
+                foreach (Blob blob in Blobs)
                 {
-                    var lump = reader.GetLump(blob);
+                    ILump lump = reader.GetLump(blob);
                     if (lump == null) continue;
 
-                    var pos = br.BaseStream.Position;
+                    long pos = br.BaseStream.Position;
                     br.BaseStream.Seek(blob.Offset, SeekOrigin.Begin);
 
                     lump.Read(br, blob, Version);
@@ -65,7 +65,7 @@ namespace Sledge.Formats.Bsp
                     br.BaseStream.Seek(pos, SeekOrigin.Begin);
                 }
 
-                foreach (var lump in Lumps)
+                foreach (ILump lump in Lumps)
                 {
                     lump.PostReadProcess(this);
                 }
@@ -74,17 +74,17 @@ namespace Sledge.Formats.Bsp
 
         public void WriteToStream(Stream s, Version version)
         {
-            var writer = _writers.First(x => x.SupportedVersion == version);
+            IBspWriter writer = _writers.First(x => x.SupportedVersion == version);
 
-            foreach (var lump in Lumps)
+            foreach (ILump lump in Lumps)
             {
                 lump.PreWriteProcess(this, version);
             }
 
-            using (var bw = new BinaryWriter(s, Encoding.ASCII, true))
+            using (BinaryWriter bw = new BinaryWriter(s, Encoding.ASCII, true))
             {
                 writer.SeekToFirstLump(bw);
-                var lumps = writer.GetLumps(this)
+                List<Blob> lumps = writer.GetLumps(this)
                     .Select((x, i) => new Blob
                     {
                         Offset = (int) bw.BaseStream.Position,
@@ -102,14 +102,14 @@ namespace Sledge.Formats.Bsp
             return (T) Lumps.FirstOrDefault(x => x is T);
         }
 
-        private readonly IBspReader[] _readers =
+        readonly IBspReader[] _readers =
         {
             new GoldsourceBspReader(),
             new Quake1BspReader(),
             new Quake2BspReader(), 
         };
 
-        private readonly IBspWriter[] _writers =
+        readonly IBspWriter[] _writers =
         {
             new GoldsourceBspWriter(),
             new Quake1BspWriter(), 

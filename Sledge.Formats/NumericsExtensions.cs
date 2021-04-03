@@ -20,9 +20,9 @@ namespace Sledge.Formats
         // Vector3
         public static bool EquivalentTo(this Vector3 self, Vector3 test, float delta = Epsilon)
         {
-            var xd = Math.Abs(self.X - test.X);
-            var yd = Math.Abs(self.Y - test.Y);
-            var zd = Math.Abs(self.Z - test.Z);
+            float xd = Math.Abs(self.X - test.X);
+            float yd = Math.Abs(self.Y - test.Y);
+            float zd = Math.Abs(self.Z - test.Z);
             return xd < delta && yd < delta && zd < delta;
         }
 
@@ -33,7 +33,7 @@ namespace Sledge.Formats
 
         public static bool TryParse(string x, string y, string z, NumberStyles ns, IFormatProvider provider, out Vector3 vec)
         {
-            if (float.TryParse(x, ns, provider, out var a) && float.TryParse(y, ns, provider, out var b) && float.TryParse(z, ns, provider, out var c))
+            if (float.TryParse(x, ns, provider, out float a) && float.TryParse(y, ns, provider, out float b) && float.TryParse(z, ns, provider, out float c))
             {
                 vec = new Vector3(a, b, c);
                 return true;
@@ -52,11 +52,10 @@ namespace Sledge.Formats
         public static Vector3 ClosestAxis(this Vector3 self)
         {
             // VHE prioritises the axes in order of X, Y, Z.
-            var norm = Vector3.Abs(self);
+            Vector3 norm = Vector3.Abs(self);
 
             if (norm.X >= norm.Y && norm.X >= norm.Z) return Vector3.UnitX;
-            if (norm.Y >= norm.Z) return Vector3.UnitY;
-            return Vector3.UnitZ;
+            return norm.Y >= norm.Z ? Vector3.UnitY : Vector3.UnitZ;
         }
 
         public static Precision.Vector3 ToPrecisionVector3(this Vector3 self)
@@ -78,13 +77,13 @@ namespace Sledge.Formats
         // Color
         public static Color ToColor(this Vector4 self)
         {
-            var mul = self * 255;
+            Vector4 mul = self * 255;
             return Color.FromArgb((byte) mul.W, (byte) mul.X, (byte) mul.Y, (byte) mul.Z);
         }
 
         public static Color ToColor(this Vector3 self)
         {
-            var mul = self * 255;
+            Vector3 mul = self * 255;
             return Color.FromArgb(255, (byte) mul.X, (byte) mul.Y, (byte) mul.Z);
         }
 
@@ -94,17 +93,17 @@ namespace Sledge.Formats
         // Plane
         public static Plane PlaneFromVertices(IEnumerable<Vector3> vertices)
         {
-            var verts = vertices.Take(3).ToList();
+            List<Vector3> verts = vertices.Take(3).ToList();
             return PlaneFromVertices(verts[0], verts[1], verts[2]);
         }
 
         public static Plane PlaneFromVertices(Vector3 a, Vector3 b, Vector3 c)
         {
-            var ab = b - a;
-            var ac = c - a;
+            Vector3 ab = b - a;
+            Vector3 ac = c - a;
 
-            var normal = ac.Cross(ab).Normalise();
-            var d = normal.Dot(a);
+            Vector3 normal = ac.Cross(ab).Normalise();
+            float d = normal.Dot(a);
 
             return new Plane(normal, d);
         }

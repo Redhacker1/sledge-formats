@@ -12,7 +12,7 @@ namespace Sledge.Formats.Map.Formats.VmfObjects
         public VmfSolid(SerialisedObject obj) : base(obj)
         {
             Sides = new List<VmfSide>();
-            foreach (var so in obj.Children.Where(x => x.Name == "side"))
+            foreach (SerialisedObject so in obj.Children.Where(x => x.Name == "side"))
             {
                 Sides.Add(new VmfSide(so));
             }
@@ -30,7 +30,7 @@ namespace Sledge.Formats.Map.Formats.VmfObjects
 
         public override MapObject ToMapObject()
         {
-            var sol = new Solid();
+            Solid sol = new Solid();
             Editor.Apply(sol);
             sol.Faces.AddRange(Sides.Select(x => x.ToFace()));
             sol.ComputeVertices();
@@ -39,7 +39,7 @@ namespace Sledge.Formats.Map.Formats.VmfObjects
 
         public override SerialisedObject ToSerialisedObject()
         {
-            var so = new SerialisedObject("solid");
+            SerialisedObject so = new SerialisedObject("solid");
             so.Set("id", ID);
             so.Children.AddRange(Sides.Select(x => x.ToSerialisedObject()));
             so.Children.Add(Editor.ToSerialisedObject());

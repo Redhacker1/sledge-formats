@@ -25,11 +25,11 @@ namespace Sledge.Formats.Map.Formats.VmfObjects
 
         public override SerialisedObject ToSerialisedObject()
         {
-            var so = new SerialisedObject(SerialisedObjectName);
+            SerialisedObject so = new SerialisedObject(SerialisedObjectName);
             so.Set("id", 1);
             so.Set("classname", ClassName);
             if (SpawnFlags > 0) so.Set("spawnflags", SpawnFlags);
-            foreach (var prop in Properties)
+            foreach (KeyValuePair<string, string> prop in Properties)
             {
                 so.Properties.Add(new KeyValuePair<string, string>(prop.Key, prop.Value));
             }

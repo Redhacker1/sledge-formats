@@ -5,7 +5,7 @@ namespace Sledge.Formats.Map
 {
     public static class MapFormatFactory
     {
-        private static readonly List<IMapFormat> _formats;
+        static readonly List<IMapFormat> _formats;
 
         static MapFormatFactory()
         {

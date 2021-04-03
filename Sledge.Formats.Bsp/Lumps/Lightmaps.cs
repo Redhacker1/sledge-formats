@@ -5,13 +5,14 @@ using System.IO;
 using System.Linq;
 using System.Numerics;
 using Sledge.Formats.Bsp.Objects;
+using Plane = Sledge.Formats.Bsp.Objects.Plane;
 
 namespace Sledge.Formats.Bsp.Lumps
 {
     public class Lightmaps : ILump, IList<Lightmap>
     {
-        private readonly IList<Lightmap> _lightmaps;
-        private byte[] _lightmapData;
+        readonly IList<Lightmap> _lightmaps;
+        byte[] _lightmapData;
 
         public Lightmaps()
         {
@@ -25,53 +26,53 @@ namespace Sledge.Formats.Bsp.Lumps
 
         public void PostReadProcess(BspFile bsp)
         {
-            var textureInfos = bsp.GetLump<Texinfo>();
-            var planes = bsp.GetLump<Planes>();
-            var surfEdges = bsp.GetLump<Surfedges>();
-            var edges = bsp.GetLump<Edges>();
-            var vertices = bsp.GetLump<Vertices>();
-            var faces = bsp.GetLump<Faces>()
+            Texinfo textureInfos = bsp.GetLump<Texinfo>();
+            Planes planes = bsp.GetLump<Planes>();
+            Surfedges surfEdges = bsp.GetLump<Surfedges>();
+            Edges edges = bsp.GetLump<Edges>();
+            Vertices vertices = bsp.GetLump<Vertices>();
+            List<Face> faces = bsp.GetLump<Faces>()
                 .Where(x => x.Styles.Length > 0 && x.Styles[0] != byte.MaxValue) // Indicates a fullbright face, no offset
                 .Where(x => x.LightmapOffset >= 0 && x.LightmapOffset < _lightmapData.Length) // Invalid offset
                 .ToList();
 
-            var offsetDict = new Dictionary<int, Lightmap>();
-            foreach (var face in faces)
+            Dictionary<int, Lightmap> offsetDict = new Dictionary<int, Lightmap>();
+            foreach (Face face in faces)
             {
                 if (offsetDict.ContainsKey(face.LightmapOffset)) continue;
 
-                var ti = textureInfos[face.TextureInfo];
-                var pl = planes[face.Plane];
+                TextureInfo ti = textureInfos[face.TextureInfo];
+                Plane pl = planes[face.Plane];
 
-                var uvs = new List<Vector2>();
-                for (var i = 0; i < face.NumEdges; i++)
+                List<Vector2> uvs = new List<Vector2>();
+                for (int i = 0; i < face.NumEdges; i++)
                 {
-                    var ei = surfEdges[face.FirstEdge + i];
-                    var edge = edges[Math.Abs(ei)];
-                    var point = vertices[ei > 0 ? edge.Start : edge.End];
+                    int ei = surfEdges[face.FirstEdge + i];
+                    Edge edge = edges[Math.Abs(ei)];
+                    Vector3 point = vertices[ei > 0 ? edge.Start : edge.End];
 
-                    var sn = new Vector3(ti.S.X, ti.S.Y, ti.S.Z);
-                    var u = Vector3.Dot(point, sn) + ti.S.W;
+                    Vector3 sn = new Vector3(ti.S.X, ti.S.Y, ti.S.Z);
+                    float u = Vector3.Dot(point, sn) + ti.S.W;
 
-                    var tn = new Vector3(ti.T.X, ti.T.Y, ti.T.Z);
-                    var v = Vector3.Dot(point, tn) + ti.T.W;
+                    Vector3 tn = new Vector3(ti.T.X, ti.T.Y, ti.T.Z);
+                    float v = Vector3.Dot(point, tn) + ti.T.W;
 
                     uvs.Add(new Vector2(u, v));
                 }
 
-                var minu = uvs.Min(x => x.X);
-                var maxu = uvs.Max(x => x.X);
-                var minv = uvs.Min(x => x.Y);
-                var maxv = uvs.Max(x => x.Y);
+                float minu = uvs.Min(x => x.X);
+                float maxu = uvs.Max(x => x.X);
+                float minv = uvs.Min(x => x.Y);
+                float maxv = uvs.Max(x => x.Y);
 
-                var width = (int) Math.Ceiling(maxu / 16) - (int)Math.Floor(minu / 16) + 1;
-                var height = (int) Math.Ceiling(maxv / 16) - (int)Math.Floor(minv / 16) + 1;
-                var bpp = bsp.Version == Version.Quake1 ? 1 : 3;
+                int width = (int) Math.Ceiling(maxu / 16) - (int)Math.Floor(minu / 16) + 1;
+                int height = (int) Math.Ceiling(maxv / 16) - (int)Math.Floor(minv / 16) + 1;
+                int bpp = bsp.Version == Version.Quake1 ? 1 : 3;
 
-                var data = new byte[bpp * width * height];
+                byte[] data = new byte[bpp * width * height];
                 Array.Copy(_lightmapData, face.LightmapOffset, data, 0, data.Length);
 
-                var map = new Lightmap
+                Lightmap map = new Lightmap
                 {
                     Offset = face.LightmapOffset,
                     Width = width,

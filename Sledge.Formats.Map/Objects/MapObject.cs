@@ -17,26 +17,26 @@ namespace Sledge.Formats.Map.Objects
             Color = Color.White;
         }
 
-        public List<MapObject> FindAll()
+        public IEnumerable<MapObject> FindAll()
         {
             return Find(x => true);
         }
 
-        public List<MapObject> Find(Predicate<MapObject> matcher)
+        public IEnumerable<MapObject> Find(Predicate<MapObject> matcher)
         {
-            var list = new List<MapObject>();
+            List<MapObject> list = new List<MapObject>();
             FindRecursive(list, matcher);
             return list;
         }
 
-        private void FindRecursive(ICollection<MapObject> items, Predicate<MapObject> matcher)
+        void FindRecursive(ICollection<MapObject> items, Predicate<MapObject> matcher)
         {
-            var thisMatch = matcher(this);
+            bool thisMatch = matcher(this);
             if (thisMatch)
             {
                 items.Add(this);
             }
-            foreach (var mo in Children)
+            foreach (MapObject mo in Children)
             {
                 mo.FindRecursive(items, matcher);
             }

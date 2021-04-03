@@ -27,7 +27,7 @@ namespace Sledge.Formats.Texture.Wad.Lumps
             RowHeight = br.ReadInt32();
 
             Characters = new List<CharacterInfo>();
-            for (var i = 0; i < 256; i++)
+            for (int i = 0; i < 256; i++)
             {
                 Characters.Add(new CharacterInfo
                 {
@@ -37,13 +37,13 @@ namespace Sledge.Formats.Texture.Wad.Lumps
             }
 
             ImageData = br.ReadBytes(Width * Height);
-            var paletteSize = br.ReadUInt16();
+            ushort paletteSize = br.ReadUInt16();
             Palette = br.ReadBytes(paletteSize * 3);
         }
 
         public int Write(BinaryWriter bw)
         {
-            var pos = bw.BaseStream.Position;
+            long pos = bw.BaseStream.Position;
 
             bw.Write((int) Width);
             bw.Write((int) Height);
@@ -51,7 +51,7 @@ namespace Sledge.Formats.Texture.Wad.Lumps
             bw.Write((int) NumRows);
             bw.Write((int) RowHeight);
 
-            foreach (var ci in Characters)
+            foreach (CharacterInfo ci in Characters)
             {
                 bw.Write((short) ci.Offset);
                 bw.Write((short) ci.Width);

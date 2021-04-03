@@ -6,7 +6,7 @@ namespace Sledge.Formats.Bsp.Lumps
 {
     public class Surfedges : ILump, IList<int>
     {
-        private readonly IList<int> _surfaceEdges;
+        readonly IList<int> _surfaceEdges;
 
         public Surfedges()
         {
@@ -15,8 +15,8 @@ namespace Sledge.Formats.Bsp.Lumps
 
         public void Read(BinaryReader br, Blob blob, Version version)
         {
-            var num = blob.Length / sizeof(int);
-            for (var i = 0; i < num; i++)
+            int num = blob.Length / sizeof(int);
+            for (int i = 0; i < num; i++)
             {
                 _surfaceEdges.Add(br.ReadInt32());
             }
@@ -34,7 +34,7 @@ namespace Sledge.Formats.Bsp.Lumps
 
         public int Write(BinaryWriter bw, Version version)
         {
-            foreach (var se in _surfaceEdges)
+            foreach (int se in _surfaceEdges)
             {
                 bw.Write((int) se);
             }

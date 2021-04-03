@@ -8,7 +8,7 @@ namespace Sledge.Formats.Tests.Valve
     [TestClass]
     public class TestLiblist
     {
-        private readonly Stream _libList = new MemoryStream(Encoding.ASCII.GetBytes(@"// Valve Game Info file
+        readonly Stream _libList = new MemoryStream(Encoding.ASCII.GetBytes(@"// Valve Game Info file
 //  These are key/value pairs.  Certain mods will use different settings.
 //
 game ""Half-Life""
@@ -26,7 +26,7 @@ type ""singleplayer_only""
         public void TestLoading()
         {
             _libList.Position = 0;
-            var lib = new Liblist(_libList);
+            Liblist lib = new Liblist(_libList);
             Assert.AreEqual("Half-Life", lib.Game);
             Assert.AreEqual("c0a0", lib.StartingMap);
             Assert.AreEqual("t0a0", lib.TrainingMap);
@@ -41,7 +41,7 @@ type ""singleplayer_only""
         [TestMethod]
         public void TestSaving()
         {
-            var lib = new Liblist(_libList)
+            Liblist lib = new Liblist(_libList)
             {
                 Game = "Half-Life",
                 StartingMap = "c0a0",
@@ -55,7 +55,7 @@ type ""singleplayer_only""
             };
 
             string output;
-            using (var ms = new MemoryStream())
+            using (MemoryStream ms = new MemoryStream())
             {
                 lib.Write(ms);
                 ms.Position = 0;

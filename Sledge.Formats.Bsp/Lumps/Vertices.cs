@@ -7,7 +7,7 @@ namespace Sledge.Formats.Bsp.Lumps
 {
     public class Vertices : ILump, IList<Vector3>
     {
-        private readonly IList<Vector3> _vertices;
+        readonly IList<Vector3> _vertices;
 
         public Vertices()
         {
@@ -34,7 +34,7 @@ namespace Sledge.Formats.Bsp.Lumps
 
         public int Write(BinaryWriter bw, Version version)
         {
-            foreach (var se in _vertices)
+            foreach (Vector3 se in _vertices)
             {
                 bw.WriteVector3(se);
             }

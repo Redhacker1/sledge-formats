@@ -9,7 +9,7 @@ namespace Sledge.Formats.Bsp.Lumps
 {
     public class Planes : ILump, IList<Plane>
     {
-        private readonly IList<Plane> _planes;
+        readonly IList<Plane> _planes;
 
         public Planes()
         {
@@ -41,8 +41,8 @@ namespace Sledge.Formats.Bsp.Lumps
 
         public int Write(BinaryWriter bw, Version version)
         {
-            var pos = bw.BaseStream.Position;
-            foreach (var plane in _planes)
+            long pos = bw.BaseStream.Position;
+            foreach (Plane plane in _planes)
             {
                 bw.WriteVector3(plane.Normal);
                 bw.Write((float) plane.Distance);

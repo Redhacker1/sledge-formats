@@ -4,11 +4,11 @@
     {
         public static void DecompressDxt1(byte[] buffer, byte[] data, int width, int height)
         {
-            var pos = 0;
-            var c = new byte[16];
-            for (var y = 0; y < height; y += 4)
+            int pos = 0;
+            byte[] c = new byte[16];
+            for (int y = 0; y < height; y += 4)
             {
-                for (var x = 0; x < width; x += 4)
+                for (int x = 0; x < width; x += 4)
                 {
                     int c0 = data[pos++];
                     c0 |= data[pos++] << 8;
@@ -59,17 +59,17 @@
                     bytes |= data[pos++] << 16;
                     bytes |= data[pos++] << 24;
 
-                    for (var yy = 0; yy < 4; yy++)
+                    for (int yy = 0; yy < 4; yy++)
                     {
-                        for (var xx = 0; xx < 4; xx++)
+                        for (int xx = 0; xx < 4; xx++)
                         {
-                            var xpos = x + xx;
-                            var ypos = y + yy;
+                            int xpos = x + xx;
+                            int ypos = y + yy;
                             if (xpos < width && ypos < height)
                             {
-                                var index = bytes & 0x0003;
+                                int index = bytes & 0x0003;
                                 index *= 4;
-                                var pointer = ypos * width * 4 + xpos * 4;
+                                int pointer = ypos * width * 4 + xpos * 4;
                                 buffer[pointer + 0] = c[index + 2]; // b
                                 buffer[pointer + 1] = c[index + 1]; // g
                                 buffer[pointer + 2] = c[index + 0]; // r
@@ -84,14 +84,14 @@
 
         public static void DecompressDxt3(byte[] buffer, byte[] data, int width, int height)
         {
-            var pos = 0;
-            var c = new byte[16];
-            var a = new byte[8];
-            for (var y = 0; y < height; y += 4)
+            int pos = 0;
+            byte[] c = new byte[16];
+            byte[] a = new byte[8];
+            for (int y = 0; y < height; y += 4)
             {
-                for (var x = 0; x < width; x += 4)
+                for (int x = 0; x < width; x += 4)
                 {
-                    for (var i = 0; i < 8; i++) a[i] = data[pos++];
+                    for (int i = 0; i < 8; i++) a[i] = data[pos++];
 
                     int c0 = data[pos++];
                     c0 |= data[pos++] << 8;
@@ -124,20 +124,20 @@
                     bytes |= data[pos++] << 16;
                     bytes |= data[pos++] << 24;
 
-                    for (var yy = 0; yy < 4; yy++)
+                    for (int yy = 0; yy < 4; yy++)
                     {
-                        for (var xx = 0; xx < 4; xx++)
+                        for (int xx = 0; xx < 4; xx++)
                         {
-                            var xpos = x + xx;
-                            var ypos = y + yy;
-                            var aindex = yy * 4 + xx;
+                            int xpos = x + xx;
+                            int ypos = y + yy;
+                            int aindex = yy * 4 + xx;
                             if (xpos < width && ypos < height)
                             {
-                                var index = bytes & 0x0003;
+                                int index = bytes & 0x0003;
                                 index *= 4;
-                                var alpha = (byte)((a[aindex >> 1] >> (aindex << 2 & 0x07)) & 0x0f);
+                                byte alpha = (byte)((a[aindex >> 1] >> (aindex << 2 & 0x07)) & 0x0f);
                                 alpha = (byte)((alpha << 4) | alpha);
-                                var pointer = ypos * width * 4 + xpos * 4;
+                                int pointer = ypos * width * 4 + xpos * 4;
                                 buffer[pointer + 0] = c[index + 2]; // b
                                 buffer[pointer + 1] = c[index + 1]; // g
                                 buffer[pointer + 2] = c[index + 0]; // r
@@ -152,15 +152,15 @@
 
         public static void DecompressDxt5(byte[] buffer, byte[] data, int width, int height)
         {
-            var pos = 0;
-            var c = new byte[16];
-            var a = new int[8];
-            for (var y = 0; y < height; y += 4)
+            int pos = 0;
+            byte[] c = new byte[16];
+            int[] a = new int[8];
+            for (int y = 0; y < height; y += 4)
             {
-                for (var x = 0; x < width; x += 4)
+                for (int x = 0; x < width; x += 4)
                 {
-                    var a0 = data[pos++];
-                    var a1 = data[pos++];
+                    byte a0 = data[pos++];
+                    byte a1 = data[pos++];
 
                     a[0] = a0;
                     a[1] = a1;
@@ -184,8 +184,8 @@
                         a[7] = 0xFF;
                     }
 
-                    var aindex = 0L;
-                    for (var i = 0; i < 6; i++) aindex |= ((long)data[pos++]) << (8 * i);
+                    long aindex = 0L;
+                    for (int i = 0; i < 6; i++) aindex |= ((long)data[pos++]) << (8 * i);
 
                     int c0 = data[pos++];
                     c0 |= data[pos++] << 8;
@@ -218,18 +218,18 @@
                     bytes |= data[pos++] << 16;
                     bytes |= data[pos++] << 24;
 
-                    for (var yy = 0; yy < 4; yy++)
+                    for (int yy = 0; yy < 4; yy++)
                     {
-                        for (var xx = 0; xx < 4; xx++)
+                        for (int xx = 0; xx < 4; xx++)
                         {
-                            var xpos = x + xx;
-                            var ypos = y + yy;
+                            int xpos = x + xx;
+                            int ypos = y + yy;
                             if (xpos < width && ypos < height)
                             {
-                                var index = bytes & 0x0003;
+                                int index = bytes & 0x0003;
                                 index *= 4;
-                                var alpha = (byte)a[aindex & 0x07];
-                                var pointer = ypos * width * 4 + xpos * 4;
+                                byte alpha = (byte)a[aindex & 0x07];
+                                int pointer = ypos * width * 4 + xpos * 4;
                                 buffer[pointer + 0] = c[index + 2]; // b
                                 buffer[pointer + 1] = c[index + 1]; // g
                                 buffer[pointer + 2] = c[index + 0]; // r
